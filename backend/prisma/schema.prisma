@@ -18,6 +18,22 @@ enum Role {
   ADMIN
 }
 
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+//user
 model User {
   id           String    @id @default(uuid())
   email        String    @unique
@@ -37,21 +53,158 @@ model User {
   @@map("users")
 }
 
+//Product model
+model Product {
+  id          String  @id @default(uuid())
+  name        String
+  description String?
+  price       Decimal @db.Decimal(10, 2)
+  stock       Int     @default(0)
+  sku         String  @unique
+  imageUrl    String?
+  isActive    Boolean @default(true)
+
+  //relatioins
+  orderItems OrderItem[]
+  cartItems  CartItem[]
+
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id])
+
+  //timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([sku])
+  @@index([categoryId])
+  @@index([isActive])
+  @@map("products")
+}
+
+//Category
+model Category {
+  id          String    @id @default(uuid())
+  name        String
+  description String?
+  slug        String    @unique
+  imageUrl    String?
+  isActive    Boolean   @default(true)
+  products    Product[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([slug])
+  @@index([isActive])
+  @@map("category")
+}
+
+//OrderItem
+model OrderItem {
+  id       String  @id @default(uuid())
+  quantity Int
+  price    Decimal @db.Decimal(10, 2)
+
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([orderId])
+  @@index([productId])
+  @@map("order_items")
+}
+
+//CartItem
+model CartItem {
+  id        String  @id @default(uuid())
+  quantity  Int     @default(1)
+
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  cartId String
+  cart   Cart   @relation(fields: [cartId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([cartId, productId])
+  @@index([cartId])
+  @@index([productId])
+  @@map("carts_items")
+}
+
 //Order
 model Order {
-  id     String @id @default(uuid())
+  id          String      @id @default(uuid())
+  orderNumber String      @unique @default(cuid())
+  status      OrderStatus
+  totalAmount Decimal     @db.Decimal(10, 2)
+
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  cartId String?
+  cart   Cart?   @relation(fields: [cartId], references: [id])
+
+  shippingAddress String?
+  orderItems      OrderItem[]
+  payment         Payment?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([orderNumber])
+  @@index([status])
+  @@map("orders")
 }
 
+//Cart
 model Cart {
-  id     String @id @default(uuid())
+  id String @id @default(uuid())
+
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  orders  Order[]
+  checkedOut Boolean @default(false)
+
+  cartItems CartItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@map("carts")
 }
 
+//Payment
 model Payment {
-  id     String @id @default(uuid())
+  id            String        @id @default(uuid())
+  amount        Decimal       @db.Decimal(10, 2)
+  status        PaymentStatus @default(PENDING)
+  currency      String        @default("usd")
+  paymentMethod String?
+  transactionId String?
+
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  orderId String @unique
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([orderId])
+  @@index([userId])
+  @@index([transactionId])
+  @@map("payments")
 }
+
