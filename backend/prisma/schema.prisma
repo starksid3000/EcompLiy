@@ -13,18 +13,45 @@ datasource db {
   provider = "postgresql"
 }
 
-model User {
-  id        String  @id @default(uuid())
-  email     String  @unique
-  password  String
-  firstName String?
-  lastName  String?
-  role      Role    @default(USER)
-  refreshToken String?
-  
-}
-
 enum Role {
   USER
-  ADMING
+  ADMIN
+}
+
+model User {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  password     String
+  firstName    String?
+  lastName     String?
+  role         Role      @default(USER)
+  refreshToken String?
+  //relation
+  orders       Order[]
+  carts        Cart[]
+  payments     Payment[]
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([email])
+  @@map("users")
+}
+
+//Order
+model Order {
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Cart {
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Payment {
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
