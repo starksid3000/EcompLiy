@@ -12,7 +12,6 @@ async function bootstrap() {
 }
 bootstrap().catch(
   (error) => {
-    // eslint-disable-next-line prettier/prettier
     Logger.error("Error starting server",error);
     process.exit(1);
   }
