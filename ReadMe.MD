@@ -5,7 +5,7 @@
 <p align="center">
   <b>Project Progress Summary</b><br/>
   📅 <b>Last Updated:</b> February 28, 2026<br/>
-  ⏱️ <b>Timestamp:</b> 2026-02-28
+  ⏱️ <b>Timestamp:</b> 2026-02-28T10:30:00Z
 </p>
 
 <p align="center">
@@ -83,13 +83,23 @@ Monorepo-style setup with <code>concurrently</code> to run both servers:
 ✅ Initial migration applied successfully.
 </p>
 
+<h3>🔐 Authentication (JWT)</h3>
+
+<ul>
+  <li>Register endpoint: <code>POST /api/v1/auth/register</code></li>
+  <li>Access token: 15 minutes expiry</li>
+  <li>Refresh token: 7 days expiry</li>
+  <li>Password hashing: bcrypt with 12 salt rounds</li>
+  <li>JWT Strategy configured</li>
+</ul>
+
 <hr/>
 
 <h2>🎨 Frontend Development</h2>
 
 <ul>
   <li>React 19.2.0</li>
-  <li>Vite 7</li>
+  <li>Vite 7.3.1</li>
   <li>Default template stage (no custom UI yet)</li>
 </ul>
 
@@ -115,19 +125,27 @@ Monorepo-style setup with <code>concurrently</code> to run both servers:
     <td>✅ Basic Structure Ready</td>
   </tr>
   <tr>
+    <td>JWT Authentication</td>
+    <td>🟡 Partial (Register Ready)</td>
+  </tr>
+  <tr>
     <td>API Endpoints</td>
-    <td>❌ Not Implemented</td>
+    <td>🟡 Partial (Auth Only)</td>
   </tr>
   <tr>
     <td>Frontend UI</td>
     <td>❌ Default Template Only</td>
   </tr>
   <tr>
-    <td>Authentication</td>
+    <td>Product/Order APIs</td>
     <td>❌ Not Implemented</td>
   </tr>
   <tr>
-    <td>Product/Order APIs</td>
+    <td>Cart Logic</td>
+    <td>❌ Not Implemented</td>
+  </tr>
+  <tr>
+    <td>Payment Integration</td>
     <td>❌ Not Implemented</td>
   </tr>
 </table>
@@ -137,8 +155,9 @@ Monorepo-style setup with <code>concurrently</code> to run both servers:
 <h2>🧭 Next Milestones</h2>
 
 <ul>
-  <li>🔐 JWT Authentication</li>
+  <li>🔐 Complete JWT Authentication (Login, Refresh Token, Logout)</li>
   <li>📦 Product CRUD APIs</li>
+  <li>🗂️ Category Management APIs</li>
   <li>🛒 Cart Logic</li>
   <li>🧾 Order Checkout Flow</li>
   <li>💳 Payment Integration</li>
