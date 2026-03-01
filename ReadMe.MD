@@ -21,13 +21,14 @@
 <h2>🚀 Project Overview</h2>
 
 <p>
-<strong>EcompLiy</strong> is a modern full-stack e-commerce platform built with a scalable architecture.
+  <strong>EcompLiy</strong> is a modern full-stack e-commerce platform built with a scalable architecture. The project uses a monorepo-style setup with separate backend and frontend applications.
 </p>
 
 <ul>
   <li><b>Backend:</b> NestJS + PostgreSQL</li>
   <li><b>Frontend:</b> React 19 + Vite 7</li>
   <li><b>ORM:</b> Prisma with PostgreSQL adapter</li>
+  <li><b>Authentication:</b> JWT (Access + Refresh tokens)</li>
 </ul>
 
 <hr/>
@@ -35,13 +36,15 @@
 <h2>📁 Project Structure</h2>
 
 <pre>
-/backend
-/frontend
-package.json (root)
+/backend          # NestJS backend application
+/frontend         # React frontend application
+package.json      # Root package with concurrent dev scripts
 </pre>
 
 <p>
-Monorepo-style setup with <coMonorepo-style setup with <coMonorepo-style setup wite>nMonorepo-style se
+  Monorepo-style setup with concurrent execution for development.
+</p>
+
 <hr/>
 
 <h2>🔧 Backend Development (NestJS)</h2>
@@ -65,34 +68,95 @@ Monorepo-style setup with <coMonorepo-style setup with <coMonorepo-style setup w
 <h3>Database Models</h3>
 
 <ul>
-  <li>👤 User</li>
-  <li>📦 Product</li>
-  <li>🗂️ Category</li>
-  <li>🛒 Cart</li>
-  <li>🛒 CartItem</li>
-  <li>📦 Order</li>
-  <li>📦 OrderItem</li>
-  <li>💳 Payment</li>
+  <li>👤 <b>User</b> - User accounts with roles (USER, ADMIN)</li>
+  <li>📦 <b>Product</b> - Product catalog with SKU, pricing, stock</li>
+  <li>🗂️ <b>Category</b> - Product categories with slug</li>
+  <li>🛒 <b>Cart</b> - Shopping cart per user</li>
+  <li>🛒 <b>CartItem</b> - Items in cart (unique per cart + product)</li>
+  <li>📦 <b>Order</b> - Customer orders with status tracking</li>
+  <li>📦 <b>OrderItem</b> - Individual items in an order</li>
+  <li>💳 <b>Payment</b> - Payment records with transaction tracking</li>
 </ul>
 
+<h4>Order Status</h4>
 <p>
-✅ Initial migration applied successfully.✅ Initial migration applied successfully.✅ Initii>Register endpoint: <code>POST /api/v1/auth/register</code></li✅ <li>Access token: 15 minutes expiry</l✅ Initial migration applied successfully.✅ Initial migration applied successfully.✅ Initii>Regi<li>JWT Strategy configured (access + refresh)</li>
-                           lemente                           lemente               t<                           lemente              3.1</li>
+  PENDING → PROCESSING → SHIPPED → DELIVERED | CANCELLED
+</p>
+
+<h4>Payment Status</h4>
+<p>
+  PENDING | COMPLETED | FAILED | REFUNDED
+</p>
+
+<h3>🔐 Authentication</h3>
+
+<ul>
+  <li>Register endpoint: <code>POST /api/v1/auth/register</code></li>
+  <li>Login endpoint: <code>POST /api/v1/auth/login</code></li>
+  <li>Access token: 15 minutes expiry</li>
+  <li>Refresh token: 7 days expiry</li>
+  <li>JWT Strategy configured (access + refresh)</li>
+  <li>Password hashing with bcrypt</li>
+</ul>
+
+<h3>📦 Available Scripts</h3>
+
+```bash
+# Install dependencies
+npm install
+
+# Development (runs both frontend and backend)
+npm run dev
+
+# Backend only
+cd backend
+npm run start:dev
+
+# Frontend only
+cd frontend
+npm run dev
+```
+
+<hr/>
+
+<h2>🎨 Frontend (React + Vite)</h2>
+
+<ul>
+  <li>React 19 with Vite 7</li>
   <li>Default template stage (no custom UI yet)</li>
 </ul>
 
 <hr/>
 
-<h2>📊 Curre<h2>📊 Curre<h2>📊 Curre<h2>📊 Curre<h2>📊 Cu
-                                            ataba                                     td>
+<h2>📊 Current Progress</h2>
+
+<table>
+  <tr>
+    <td><b>Feature</b></td>
+    <td><b>Status</b></td>
+  </tr>
+  <tr>
+    <td>Project Setup</td>
+    <td>✅ Complete</td>
+  </tr>
+  <tr>
+    <td>Database Schema</td>
+    <td>✅ Complete</td>
   </tr>
   <tr>
     <td>Prisma Setup</td>
-    <td>✅ Configured & Migr    <td>✅ Configured >
-    <t    <t    <t    <t d>
-    <td>✅ Basic Struc    <td>✅ Basic Struc   <tr>
+    <td>✅ Configured & Migrated</td>
+  </tr>
+  <tr>
+    <td>Basic Structure</td>
+    <td>✅ Complete</td>
+  </tr>
+  <tr>
     <td>JWT Authentication</td>
-    <td>🟡 Partial (Register + Refresh Strategy Ready)</t    <td>🟡 Partia   <td>API Endpoints</td>
+    <td>🟡 Partial (Register + Login + Refresh Strategy Ready)</td>
+  </tr>
+  <tr>
+    <td>API Endpoints</td>
     <td>🟡 Partial (Auth Only)</td>
   </tr>
   <tr>
@@ -109,8 +173,20 @@ Monorepo-style setup with <coMonorepo-style setup with <coMonorepo-style setup w
   </tr>
   <tr>
     <td>Payment Integration</td>
-    <td>❌ Not Implemented    <td>❌ Not Implemented    <td>❌ Not Implemented    <td>❌ Not Implemented    <td>❌ Not Implemented    <td>❌ Not Implemented    <go    <td>❌ Not Implemented    <tAPIs</li>
-  <li>🗂️ Category M  <li>🗂️ Category M  <li>🗂️ Category M  <li>🗂️ Cateeckout Flow</li>
+    <td>❌ Not Implemented</td>
+  </tr>
+</table>
+
+<hr/>
+
+<h2>📝 Next Steps</h2>
+
+<ul>
+  <li>🔐 Complete Authentication (Login, Refresh Token endpoints)</li>
+  <li>📦 Product Management APIs</li>
+  <li>🗂️ Category Management APIs</li>
+  <li>🛒 Cart Management APIs</li>
+  <li>📦 Order Processing APIs</li>
   <li>💳 Payment Integration</li>
   <li>🎨 Custom Frontend UI</li>
 </ul>
@@ -119,4 +195,10 @@ Monorepo-style setup with <coMonorepo-style setup with <coMonorepo-style setup w
 
 <p align="center">
   <b>🟢 Foundation Complete | 🟡 Core Features In Progress | 🔴 Business Logic Pending</b>
+</p>
+
+<hr/>
+
+<p align="center">
+  Built with ❤️ using NestJS, React, and Prisma
 </p>
