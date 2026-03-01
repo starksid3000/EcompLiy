@@ -11,7 +11,7 @@ export class JwtAuthGuard extends AuthGuard('jwt'){
     ){
         super();
     }
-    canactivate(contex: ExecutionContext){
+    canActivate(contex: ExecutionContext){
         return super.canActivate(contex);
     }
 }
