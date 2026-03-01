@@ -41,11 +41,7 @@ package.json (root)
 </pre>
 
 <p>
-Monorepo-style setup with <code>concurrently</code> to run both servers:
-</p>
-
-<pre>npm run dev</pre>
-
+Monorepo-style setup with <coMonorepo-style setup with <coMonorepo-style setup wite>nMonorepo-style se
 <hr/>
 
 <h2>🔧 Backend Development (NestJS)</h2>
@@ -80,56 +76,23 @@ Monorepo-style setup with <code>concurrently</code> to run both servers:
 </ul>
 
 <p>
-✅ Initial migration applied successfully.
-</p>
-
-<h3>🔐 Authentication (JWT)</h3>
-
-<ul>
-  <li>Register endpoint: <code>POST /api/v1/auth/register</code></li>
-  <li>Access token: 15 minutes expiry</li>
-  <li>Refresh token: 7 days expiry</li>
-  <li>Password hashing: bcrypt with 12 salt rounds</li>
-  <li>JWT Strategy configured</li>
-</ul>
-
-<hr/>
-
-<h2>🎨 Frontend Development</h2>
-
-<ul>
-  <li>React 19.2.0</li>
-  <li>Vite 7.3.1</li>
+✅ Initial migration applied successfully.✅ Initial migration applied successfully.✅ Initii>Register endpoint: <code>POST /api/v1/auth/register</code></li✅ <li>Access token: 15 minutes expiry</l✅ Initial migration applied successfully.✅ Initial migration applied successfully.✅ Initii>Regi<li>JWT Strategy configured (access + refresh)</li>
+                           lemente                           lemente               t<                           lemente              3.1</li>
   <li>Default template stage (no custom UI yet)</li>
 </ul>
 
 <hr/>
 
-<h2>📊 Current Status</h2>
-
-<table>
-  <tr>
-    <th>Component</th>
-    <th>Status</th>
-  </tr>
-  <tr>
-    <td>Database Schema</td>
-    <td>✅ Complete</td>
+<h2>📊 Curre<h2>📊 Curre<h2>📊 Curre<h2>📊 Curre<h2>📊 Cu
+                                            ataba                                     td>
   </tr>
   <tr>
     <td>Prisma Setup</td>
-    <td>✅ Configured & Migrated</td>
-  </tr>
-  <tr>
-    <td>NestJS Backend</td>
-    <td>✅ Basic Structure Ready</td>
-  </tr>
-  <tr>
+    <td>✅ Configured & Migr    <td>✅ Configured >
+    <t    <t    <t    <t d>
+    <td>✅ Basic Struc    <td>✅ Basic Struc   <tr>
     <td>JWT Authentication</td>
-    <td>🟡 Partial (Register Ready)</td>
-  </tr>
-  <tr>
-    <td>API Endpoints</td>
+    <td>🟡 Partial (Register + Refresh Strategy Ready)</t    <td>🟡 Partia   <td>API Endpoints</td>
     <td>🟡 Partial (Auth Only)</td>
   </tr>
   <tr>
@@ -146,20 +109,8 @@ Monorepo-style setup with <code>concurrently</code> to run both servers:
   </tr>
   <tr>
     <td>Payment Integration</td>
-    <td>❌ Not Implemented</td>
-  </tr>
-</table>
-
-<hr/>
-
-<h2>🧭 Next Milestones</h2>
-
-<ul>
-  <li>🔐 Complete JWT Authentication (Login, Refresh Token, Logout)</li>
-  <li>📦 Product CRUD APIs</li>
-  <li>🗂️ Category Management APIs</li>
-  <li>🛒 Cart Logic</li>
-  <li>🧾 Order Checkout Flow</li>
+    <td>❌ Not Implemented    <td>❌ Not Implemented    <td>❌ Not Implemented    <td>❌ Not Implemented    <td>❌ Not Implemented    <td>❌ Not Implemented    <go    <td>❌ Not Implemented    <tAPIs</li>
+  <li>🗂️ Category M  <li>🗂️ Category M  <li>🗂️ Category M  <li>🗂️ Cateeckout Flow</li>
   <li>💳 Payment Integration</li>
   <li>🎨 Custom Frontend UI</li>
 </ul>
