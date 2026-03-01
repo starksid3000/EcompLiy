@@ -14,7 +14,8 @@ import { ConfigService} from "@nestjs/config";
 export class JwtStrategy extends PassportStrategy(Strategy){
     constructor(
         private prisma: PrismaService, 
-        private configService : ConfigService)
+        private configService : ConfigService
+    )
     {
         super({
             jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
