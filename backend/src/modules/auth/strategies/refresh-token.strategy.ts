@@ -55,7 +55,7 @@ export class RefreshTokenStrategy extends PassportStrategy(Strategy, 'jwt-refres
         throw new UnauthorizedException('Invalid refresh token')
     }
 
-    const refreshTokenMatches = await bcrypt.comapre(refreshToken, user.refreshToken);
+    const refreshTokenMatches = await bcrypt.compare(refreshToken, user.refreshToken);
 
     if(!refreshTokenMatches){
         throw new UnauthorizedException('Invalid refresh does not match');

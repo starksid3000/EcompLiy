@@ -5,7 +5,7 @@
 <p align="center">
   <b>Project Progress Summary</b><br/>
   📅 <b>Last Updated:</b> February 28, 2026<br/>
-  ⏱️ <b>Timestamp:</b> 2026-02-28T10:30:00Z
+  ⏱️ <b>Timestamp:</b> 2026-02-28T12:00:00Z
 </p>
 
 <p align="center">
@@ -31,21 +31,64 @@
   <li><b>Authentication:</b> JWT (Access + Refresh tokens)</li>
 </ul>
 
-<hr/>
+---
+
+<h2>🗄️ Database Schema</h2>
+
+<p>The database diagram below illustrates the relationships between all models:</p>
+
+<p align="center">
+  <img src="./DB_Diagram.png" alt="Database Schema Diagram" width="100%" />
+</p>
+
+---
+
+<h3>Database Models</h3>
+
+| Model               | Description                                                           |
+| ------------------- | --------------------------------------------------------------------- |
+| 👤 <b>User</b>      | User accounts with roles (USER, ADMIN), email, password, profile info |
+| 📦 <b>Product</b>   | Product catalog with SKU, pricing, stock, images                      |
+| 🗂️ <b>Category</b>  | Product categories with slug for SEO                                  |
+| 🛒 <b>Cart</b>      | Shopping cart per user                                                |
+| 🛒 <b>CartItem</b>  | Items in cart (unique per cart + product)                             |
+| 📦 <b>Order</b>     | Customer orders with status tracking                                  |
+| 📦 <b>OrderItem</b> | Individual items in an order                                          |
+| 💳 <b>Payment</b>   | Payment records with transaction tracking                             |
+
+<h4>Order Status Flow</h4>
+<p>
+  <code>PENDING</code> → <code>PROCESSING</code> → <code>SHIPPED</code> → <code>DELIVERED</code> | <code>CANCELLED</code>
+</p>
+
+<h4>Payment Status</h4>
+<p>
+  <code>PENDING</code> | <code>COMPLETED</code> | <code>FAILED</code> | <code>REFUNDED</code>
+</p>
+
+---
 
 <h2>📁 Project Structure</h2>
 
 <pre>
-/backend          # NestJS backend application
-/frontend         # React frontend application
-package.json      # Root package with concurrent dev scripts
+EcompLiy/
+├── backend/                 # NestJS backend application
+│   ├── src/
+│   │   ├── common/          # Shared guards, decorators, interfaces
+│   │   ├── modules/         # Feature modules (auth, users)
+│   │   ├── prisma/          # Prisma service & module
+│   │   └── main.ts          # Application entry point
+│   ├── prisma/
+│   │   └── schema.prisma    # Database schema
+│   └── package.json
+├── frontend/                # React frontend application
+│   ├── src/
+│   └── package.json
+├── DB_Diagram.png           # Database ER diagram
+└── package.json             # Root package with concurrent dev scripts
 </pre>
 
-<p>
-  Monorepo-style setup with concurrent execution for development.
-</p>
-
-<hr/>
+---
 
 <h2>🔧 Backend Development (NestJS)</h2>
 
@@ -56,6 +99,34 @@ package.json      # Root package with concurrent dev scripts
   <li>Global error handling with Logger</li>
 </ul>
 
+<h3>✅ Authentication (Complete)</h3>
+
+| Endpoint                           | Method | Description          | Auth Required      |
+| ---------------------------------- | ------ | -------------------- | ------------------ |
+| <code>/api/v1/auth/register</code> | POST   | Register new user    | ❌                 |
+| <code>/api/v1/auth/login</code>    | POST   | Login user           | ❌                 |
+| <code>/api/v1/auth/refresh</code>  | POST   | Refresh access token | ✅ (Refresh Token) |
+| <code>/api/v1/auth/logout</code>   | POST   | Logout user          | ✅ (JWT)           |
+
+<h4>Token Configuration</h4>
+<ul>
+  <li><b>Access Token:</b> 15 minutes expiry</li>
+  <li><b>Refresh Token:</b> 7 days expiry</li>
+  <li>Password hashing with bcrypt (12 salt rounds)</li>
+</ul>
+
+<h3>✅ Users Module (Complete)</h3>
+
+| Endpoint                               | Method | Description                 | Auth Required | Roles       |
+| -------------------------------------- | ------ | --------------------------- | ------------- | ----------- |
+| <code>/api/v1/users/me</code>          | GET    | Get current user profile    | ✅            | USER, ADMIN |
+| <code>/api/v1/users/me</code>          | PATCH  | Update current user profile | ✅            | USER, ADMIN |
+| <code>/api/v1/users/me/password</code> | PATCH  | Change password             | ✅            | USER, ADMIN |
+| <code>/api/v1/users/me</code>          | DELETE | Delete own account          | ✅            | USER, ADMIN |
+| <code>/api/v1/users</code>             | GET    | Get all users               | ✅            | ADMIN       |
+| <code>/api/v1/users/:id</code>         | GET    | Get user by ID              | ✅            | ADMIN       |
+| <code>/api/v1/users/:id</code>         | DELETE | Delete user by ID           | ✅            | ADMIN       |
+
 <h3>🗄️ Prisma Setup</h3>
 
 <ul>
@@ -65,47 +136,19 @@ package.json      # Root package with concurrent dev scripts
   <li>Development-only <code>cleanDatabase()</code> utility</li>
 </ul>
 
-<h3>Database Models</h3>
-
-<ul>
-  <li>👤 <b>User</b> - User accounts with roles (USER, ADMIN)</li>
-  <li>📦 <b>Product</b> - Product catalog with SKU, pricing, stock</li>
-  <li>🗂️ <b>Category</b> - Product categories with slug</li>
-  <li>🛒 <b>Cart</b> - Shopping cart per user</li>
-  <li>🛒 <b>CartItem</b> - Items in cart (unique per cart + product)</li>
-  <li>📦 <b>Order</b> - Customer orders with status tracking</li>
-  <li>📦 <b>OrderItem</b> - Individual items in an order</li>
-  <li>💳 <b>Payment</b> - Payment records with transaction tracking</li>
-</ul>
-
-<h4>Order Status</h4>
-<p>
-  PENDING → PROCESSING → SHIPPED → DELIVERED | CANCELLED
-</p>
-
-<h4>Payment Status</h4>
-<p>
-  PENDING | COMPLETED | FAILED | REFUNDED
-</p>
-
-<h3>🔐 Authentication</h3>
-
-<ul>
-  <li>Register endpoint: <code>POST /api/v1/auth/register</code></li>
-  <li>Login endpoint: <code>POST /api/v1/auth/login</code></li>
-  <li>Access token: 15 minutes expiry</li>
-  <li>Refresh token: 7 days expiry</li>
-  <li>JWT Strategy configured (access + refresh)</li>
-  <li>Password hashing with bcrypt</li>
-</ul>
-
 <h3>📦 Available Scripts</h3>
 
 ```bash
-# Install dependencies
+# Install all dependencies
 npm install
 
-# Development (runs both frontend and backend)
+# Install backend dependencies only
+cd backend && npm install
+
+# Install frontend dependencies only
+cd frontend && npm install
+
+# Development (runs both frontend and backend concurrently)
 npm run dev
 
 # Backend only
@@ -117,7 +160,7 @@ cd frontend
 npm run dev
 ```
 
-<hr/>
+---
 
 <h2>🎨 Frontend (React + Vite)</h2>
 
@@ -126,7 +169,7 @@ npm run dev
   <li>Default template stage (no custom UI yet)</li>
 </ul>
 
-<hr/>
+---
 
 <h2>📊 Current Progress</h2>
 
@@ -148,16 +191,20 @@ npm run dev
     <td>✅ Configured & Migrated</td>
   </tr>
   <tr>
-    <td>Basic Structure</td>
+    <td>JWT Authentication</td>
+    <td>✅ Complete (Register, Login, Refresh, Logout)</td>
+  </tr>
+  <tr>
+    <td>Users Module (CRUD)</td>
     <td>✅ Complete</td>
   </tr>
   <tr>
-    <td>JWT Authentication</td>
-    <td>🟡 Partial (Register + Login + Refresh Strategy Ready)</td>
+    <td>Roles & Permissions</td>
+    <td>✅ Complete (USER, ADMIN)</td>
   </tr>
   <tr>
-    <td>API Endpoints</td>
-    <td>🟡 Partial (Auth Only)</td>
+    <td>API Endpoints (Auth + Users)</td>
+    <td>✅ Complete</td>
   </tr>
   <tr>
     <td>Frontend UI</td>
@@ -177,12 +224,11 @@ npm run dev
   </tr>
 </table>
 
-<hr/>
+---
 
 <h2>📝 Next Steps</h2>
 
 <ul>
-  <li>🔐 Complete Authentication (Login, Refresh Token endpoints)</li>
   <li>📦 Product Management APIs</li>
   <li>🗂️ Category Management APIs</li>
   <li>🛒 Cart Management APIs</li>
@@ -191,13 +237,13 @@ npm run dev
   <li>🎨 Custom Frontend UI</li>
 </ul>
 
-<hr/>
+---
 
 <p align="center">
   <b>🟢 Foundation Complete | 🟡 Core Features In Progress | 🔴 Business Logic Pending</b>
 </p>
 
-<hr/>
+---
 
 <p align="center">
   Built with ❤️ using NestJS, React, and Prisma
