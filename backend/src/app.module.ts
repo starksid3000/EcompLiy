@@ -7,6 +7,7 @@ import { ConfigModule } from '@nestjs/config';
 import { UsersService } from './modules/users/users.service';
 import { UsersController } from './modules/users/users.controller';
 import { UsersModule } from './modules/users/users.module';
+import { CategoryModule } from './modules/category/category.module';
 
 @Module({
   imports: [
@@ -14,7 +15,7 @@ import { UsersModule } from './modules/users/users.module';
       isGlobal:true,
       envFilePath:'.env',
     }),
-    PrismaModule,AuthModule, UsersModule],
+    PrismaModule,AuthModule, UsersModule, CategoryModule],
   controllers: [AppController, UsersController],
   providers: [AppService, UsersService],
 })
