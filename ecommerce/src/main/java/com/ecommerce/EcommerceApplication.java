@@ -1,0 +1,14 @@
+package com.ecommerce;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class EcommerceApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(EcommerceApplication.class, args);
+    }
+}
+//{"accessToken":"eyJhbGciOiJIUzUxMiJ9.eyJ0eXBlIjoiYWNjZXNzIiwic3ViIjoic2lkLmRhdmVAZXhhbXBsZS5jb20iLCJpYXQiOjE3NzMwNDc4NzAsImV4cCI6MTc3MzA0ODc3MCwianRpIjoiMDJmMzY0NjgtZWExNi00NDU4LTg4OGYtYWMyNDY1YTNlMWU5In0.xto4RFII34FYXEvBrAeoRS7ZHLiYA3JbdGDp-HdtC-iD8itrMtgJlb__ESvKV04BDTb1bcYJOaIXX7Kd79DKTA","refreshToken":"eyJhbGciOiJIUzUxMiJ9.eyJ0eXBlIjoicmVmcmVzaCIsInJlZnJlc2hJZCI6ImJjMTM5NTM3NGQ0Nzc5N2Y5MDZiYTQ1MTQ4MTdiZjBjIiwic3ViIjoic2lkLmRhdmVAZXhhbXBsZS5jb20iLCJpYXQiOjE3NzMwNDc4NzAsImV4cCI6MTc3MzY1MjY3MCwianRpIjoiZDU3MDc1YzYtM2YxZS00ZjY1LWE1MTQtZmUwYzQwMDkxODBkIn0.9nxKWjnVl9BQ_5LjchH3_GWcf93bRY_A0IX-tqZqQ1DbTVbmSSpPx3kKZRFtQiVcK_dYd7Uq7NLhjQRdF1SnEQ","userId":"8756a14e-6804-49c2-883d-e7a360e7d030","email":"sid.dave@example.com","firstName":"Siddharth","lastName":"Dave","role":"USER"}siddharths-MacBook-Pro:ecommerce siddharth$
+
+//eyJhbGciOiJIUzUxMiJ9.eyJ0eXBlIjoiYWNjZXNzIiwic3ViIjoic2lkLmRhdmVAZXhhbXBsZS5jb20iLCJpYXQiOjE3NzMwNDgwMzIsImV4cCI6MTc3MzA0ODkzMiwianRpIjoiYTQ0MWIzN2MtNDhmNy00YTYwLTkzYTQtMjgyNzQyODc4NTVhIn0.x7b9Jwo0sX5VR_plhTrxJelZYnhVBctvlJyga_mDNmBe-KwivHVsJXyZFSLk5xeToZNGBoOyoMoWF2h9ZSaMzg
