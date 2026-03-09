@@ -18,8 +18,6 @@ import { UpdateCategoryDto } from './dto/update-category.dto';
 export class CategoryController {
     constructor ( private readonly categoryService: CategoryService) {}
 
-    // Create a new category
-
   // Create a new category
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
