@@ -9,6 +9,8 @@ import { UsersController } from './modules/users/users.controller';
 import { UsersModule } from './modules/users/users.module';
 import { CategoryModule } from './modules/category/category.module';
 import { ProductsModule } from './modules/products/products.module';
+import { OrdersModule } from './modules/orders/orders.module';
+import { ThrottlerModule } from '@nestjs/throttler';
 
 
 @Module({
@@ -17,7 +19,13 @@ import { ProductsModule } from './modules/products/products.module';
       isGlobal:true,
       envFilePath:'.env',
     }),
-    PrismaModule,AuthModule, UsersModule, CategoryModule, ProductsModule],
+    ThrottlerModule.forRoot([
+      {
+        ttl:60, //seconds
+        limit: 10, // 10 requests per 60 seconds
+      },
+  ]),
+    PrismaModule,AuthModule, UsersModule, CategoryModule, ProductsModule, OrdersModule],
   controllers: [AppController, UsersController],
   providers: [AppService, UsersService],
 })
