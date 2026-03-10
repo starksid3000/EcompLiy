@@ -119,6 +119,4 @@ export class AuthController {
     async login(@Body() loginDto: LoginDto): Promise<AuthResponseDto>{
         return await this.authService.login(loginDto);
     }
-
-
 }

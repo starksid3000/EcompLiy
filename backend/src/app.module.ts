@@ -9,6 +9,7 @@ import { UsersController } from './modules/users/users.controller';
 import { UsersModule } from './modules/users/users.module';
 import { CategoryModule } from './modules/category/category.module';
 import { ProductsModule } from './modules/products/products.module';
+import { OrdersModule } from './modules/orders/orders.module';
 
 
 @Module({
@@ -17,7 +18,7 @@ import { ProductsModule } from './modules/products/products.module';
       isGlobal:true,
       envFilePath:'.env',
     }),
-    PrismaModule,AuthModule, UsersModule, CategoryModule, ProductsModule],
+    PrismaModule,AuthModule, UsersModule, CategoryModule, ProductsModule, OrdersModule],
   controllers: [AppController, UsersController],
   providers: [AppService, UsersService],
 })
