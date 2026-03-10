@@ -8,6 +8,7 @@ import { OrderApiResponseDto, OrderResponseDto } from './dto/order-response.dto'
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Order, OrderItem, OrderStatus, Product, User } from '@prisma/client';
 import { QueryOrderDto } from './dto/query-order.dto';
+import { UpdateOrderDto } from './dto/update-order.dto';
 // import { contains } from 'class-validator';
 
 @Injectable()
@@ -179,6 +180,74 @@ export class OrdersService {
         }
         return this.wrap(order);
     }
+
+
+
+    //Update order detials
+    async update(id:string, updateOrderDto:UpdateOrderDto, userId?: string):Promise<OrderApiResponseDto<OrderResponseDto>>{
+        const where : any = {id};
+        if(userId) where.userId = userId;
+
+        const existing = await this.prisma.order.findFirst({
+            where,
+        })
+        if(!existing) throw new NotFoundException(`Order ${id} not found`)
+
+            const updated = await this.prisma.order.update({
+                where: {id},
+                data:updateOrderDto,
+                include:{
+                    orderItems:{
+                        include:{
+                            product:true,
+                        }
+                    },
+                    user: true,
+                }
+            })
+            return this.wrap(updated);
+    }
+
+    //Cancel order : admin
+
+    async cancel(id:string, userId?:string) : Promise<OrderApiResponseDto<OrderResponseDto>>{
+     const where : any = {id};
+     if(userId) where.userId = userId;
+     const order = await this.prisma.order.findFirst({
+        where,
+        include:{
+            orderItems:true,
+            user:true,
+        },
+     });
+     if(!order) throw new NotFoundException(`Order not found ${id}`)
+
+        if(order.status !== OrderStatus.PENDING){
+            throw new BadRequestException('Only pending orders can be cancelled')
+        }
+        const cancelled = await this.prisma.$transaction(async (tx) =>{
+            for(const item of order.orderItems){
+                await tx.product.update({
+                    where:{id: item.productId},
+                    data:{stock: {increment: item.quantity}}
+                });
+            }
+            return tx.order.update({
+                where:{id},
+                data: { status: OrderStatus.CANCELLED},
+                include:{
+                    orderItems:{
+                        include:{
+                            product:true,
+                        }
+                    },
+                    user: true,
+                }
+            })
+        })
+        return this.wrap(cancelled) ;
+    }
+
     //Helpers
     private wrap(
         order: Order &{
@@ -192,6 +261,7 @@ export class OrdersService {
             data: this.map(order),
         }
     }
+
     private map(
         order: Order & {
             orderItems: (OrderItem & {product: Product})[];
