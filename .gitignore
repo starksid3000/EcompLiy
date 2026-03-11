@@ -135,3 +135,32 @@ dist
 .yarn/install-state.gz
 .pnp.*
 target/
+
+# ===============================
+# Java / Maven (Spring Boot)
+# ===============================
+
+# Compiled class files
+*.class
+
+# Packaged files
+*.jar
+*.war
+*.ear
+
+# Maven build directory
+target/
+
+# IntelliJ IDEA
+.idea/
+*.iml
+out/
+
+# Eclipse / STS
+.project
+.classpath
+.settings/
+
+# OS files
+.DS_Store
+Thumbs.db
