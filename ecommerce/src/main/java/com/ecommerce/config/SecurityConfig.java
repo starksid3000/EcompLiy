@@ -35,27 +35,21 @@ public class SecurityConfig {
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
             // Route-level authorization rules
-            .authorizeHttpRequests(auth -> auth
-
-                // Public endpoints
-                .requestMatchers(
-                    "/api/auth/register",
-                    "/api/auth/login"
-                ).permitAll()
-
-                // Refresh uses its own filter but still needs to be permitted here
-                .requestMatchers("/api/auth/refresh").permitAll()
-
-                // Admin-only endpoints
-                .requestMatchers(
-                    "/api/admin/**",
-                    "/api/categories/admin/**",
-                    "/api/products/admin/**"
-                ).hasRole("ADMIN")
-
-                // All other requests require authentication
-                .anyRequest().authenticated()
-            )
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(
+                                "/auth/register",
+                                "/auth/login",
+                                "/auth/refresh",
+                                "/v3/api-docs",
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/swagger-ui/index.html",
+                                "/swagger-resources/**",
+                                "/webjars/**"
+                        ).permitAll()
+                        .anyRequest().authenticated()
+                )
 
             // Wire in the custom AuthenticationProvider (uses our UserDetailsService + BCrypt)
             .authenticationProvider(authenticationProvider)

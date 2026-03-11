@@ -68,7 +68,7 @@ export class UsersController {
     })
     @ApiResponse({description:'Unauthorized access'})
     @ApiResponse({description:'Email already in use'})
-    async updateProfile(userId: string, @Body() updateUserDto: UpdateUserDto): Promise<UserResponseDto>{
+    async updateProfile(@GetUser('id') userId: string, @Body() updateUserDto: UpdateUserDto): Promise<UserResponseDto>{
         return await this.usersService.update(userId, updateUserDto)
     }
 

@@ -70,4 +70,10 @@ public class GlobalExceptionHandler {
     }
 
     public record ErrorResponse(String timestamp, int status, String message) {}
+
+    public static class ResourceNotFounException extends RuntimeException {
+        public ResourceNotFounException(String message) {
+            super(message);
+        }
+    }
 }
