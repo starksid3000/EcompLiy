@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -18,6 +19,9 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     boolean existsByEmail(String email);
 
     Optional<User> findByRefreshToken(String refreshToken);
+
+    //Find many
+    List<User> findAllByOrderByCreatedAtDesc();
 
     @Modifying
     @Query("UPDATE User u SET u.refreshToken = :token WHERE u.id = :id")

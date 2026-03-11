@@ -32,7 +32,7 @@ import java.io.IOException;
 @Slf4j
 public class RefreshTokenFilter extends OncePerRequestFilter {
 
-    private static final String REFRESH_PATH = "/api/auth/refresh";
+    private static final String REFRESH_PATH = "/auth/refresh";
 
     private final JwtService jwtService;
     private final UserRepository userRepository;
