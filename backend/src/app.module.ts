@@ -11,6 +11,9 @@ import { CategoryModule } from './modules/category/category.module';
 import { ProductsModule } from './modules/products/products.module';
 import { OrdersModule } from './modules/orders/orders.module';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { PaymentsService } from './modules/payments/payments.service';
+import { PaymentsController } from './modules/payments/payments.controller';
+import { CartModule } from './modules/cart/cart.module';
 
 
 @Module({
@@ -25,8 +28,8 @@ import { ThrottlerModule } from '@nestjs/throttler';
         limit: 10, // 10 requests per 60 seconds
       },
   ]),
-    PrismaModule,AuthModule, UsersModule, CategoryModule, ProductsModule, OrdersModule],
-  controllers: [AppController, UsersController],
-  providers: [AppService, UsersService],
+    PrismaModule,AuthModule, UsersModule, CategoryModule, ProductsModule, OrdersModule, CartModule],
+  controllers: [AppController, UsersController, PaymentsController],
+  providers: [AppService, UsersService, PaymentsService],
 })
 export class AppModule {}
