@@ -15,7 +15,7 @@ async function bootstrap() {
       whitelist: true,
       forbidNonWhitelisted: true,
       transform: true,
-      transformOptions:{
+      transformOptions: {
         enableImplicitConversion: true,
       }
     })
@@ -27,40 +27,40 @@ async function bootstrap() {
     origin: process.env.ALLOWED_ORIGINS?.split(',') ?? 'http://localhost:3000',
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type','Authorization','Accept'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
   });
 
   //Enable Swagger docs
   const config = new DocumentBuilder()
-  .setTitle('API DOCUMENTATION')
-  .setDescription('API documentation for the application')
-  .setVersion('1.0')
-  .addTag('auth', 'Authentication related endpoints')
-  .addBearerAuth(
-    {
-      type: 'http',
-      scheme: 'bearer',
-      bearerFormat: 'JWT',
-      name: 'JWT',
-      description: 'Enter JWT token',
-      in: 'header',
-    },
-    'JWT-auth',
-  )
-  .addBearerAuth(
-    {
-      type: 'http',
-      scheme: 'bearer',
-      bearerFormat: 'JWT',
-      name: 'Refresh-JWT',
-      description: 'Enter refresh JWT token',
-      in: 'header',
-    },
-    'JWT-refresh',
-  )
-  .addServer('http://localhost:3000','Development server')
-  .build();
-  
+    .setTitle('API DOCUMENTATION')
+    .setDescription('API documentation for the application')
+    .setVersion('1.0')
+    .addTag('auth', 'Authentication related endpoints')
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        name: 'JWT',
+        description: 'Enter JWT token',
+        in: 'header',
+      },
+      'JWT-auth',
+    )
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        name: 'Refresh-JWT',
+        description: 'Enter refresh JWT token',
+        in: 'header',
+      },
+      'JWT-refresh',
+    )
+    .addServer('http://localhost:3000', 'Development server')
+    .build();
+
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document, {
     swaggerOptions: {
@@ -80,7 +80,7 @@ async function bootstrap() {
 }
 bootstrap().catch(
   (error) => {
-    Logger.error("Error starting server",error);
+    Logger.error("Error starting server", error);
     process.exit(1);
   }
 );

@@ -3,7 +3,7 @@ import { create } from "zustand";
 const useAuthStore = create((set) => ({
   isAuthenticated: !!localStorage.getItem("accessToken"),
   user: null,
-
+  isLoading: true,
   login: (token, userData) => {
     localStorage.setItem("accessToken", token);
     if (userData) {
@@ -20,6 +20,7 @@ const useAuthStore = create((set) => ({
     const token = localStorage.getItem("accessToken");
     const userStr = localStorage.getItem("user");
     let user = null;
+    set({ isLoading: true });
     if (userStr) {
       try {
         user = JSON.parse(userStr);
@@ -27,7 +28,11 @@ const useAuthStore = create((set) => ({
         console.error("Failed to parse user data from local storage", e);
       }
     }
-    set({ isAuthenticated: !!token, user });
+    set({
+      isAuthenticated: !!token,
+      user,
+      isLoading: false,
+    });
   },
 }));
 
