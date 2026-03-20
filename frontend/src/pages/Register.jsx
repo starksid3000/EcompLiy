@@ -50,7 +50,7 @@ const Register = () => {
         <div
             className="flex justify-content-center align-items-center min-h-screen"
             style={{
-                background: 'linear-gradient(135deg, #dbd9f4ff, #ffffffff)'
+                background: 'linear-gradient(135deg, #dbd9f4ff, rgb(167, 39, 39))'
             }}
         >
             <div

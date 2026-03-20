@@ -8,8 +8,9 @@ import { Badge } from "primereact/badge";
 import { Skeleton } from "primereact/skeleton";
 import UserMenu from "../components/UserMenu";
 import api from "../utils/api";
+import { Toast } from "primereact/toast";
 
-// Main Layout 
+// Main Layout
 const MainLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -23,7 +24,6 @@ const MainLayout = () => {
 
   useEffect(() => {
     initializeAuth();
-    
   }, []); // intentionally empty — initializeAuth should only run once on mount
 
   const handleLogout = async () => {
@@ -82,10 +82,11 @@ const MainLayout = () => {
       {
         template: () => (
           <div
-            className={`p-menuitem-link flex align-items-center gap-2 cursor-pointer ${location.pathname.startsWith("/cart")
-              ? "font-bold text-primary"
-              : ""
-              }`}
+            className={`p-menuitem-link flex align-items-center gap-2 cursor-pointer ${
+              location.pathname.startsWith("/cart")
+                ? "font-bold text-primary"
+                : ""
+            }`}
             onClick={() => navigate("/cart")}
             role="link"
             aria-label={`Cart${cartCount > 0 ? `, ${cartCount} items` : ""}`}
@@ -101,7 +102,8 @@ const MainLayout = () => {
     ],
     [location.pathname, navigate, cartCount],
   );
-  const isAuthPage = location.pathname === '/login' || location.pathname === '/register';
+  const isAuthPage =
+    location.pathname === "/login" || location.pathname === "/register";
   // Memoized end content
   const endContent = useMemo(
     () => (
@@ -129,6 +131,7 @@ const MainLayout = () => {
 
   return (
     <div className="min-h-screen flex flex-column surface-ground">
+      <Toast ref={toast} />
       <header
         className="sticky top-0 z-5"
         style={{
@@ -145,8 +148,7 @@ const MainLayout = () => {
         />
       </header>
 
-
-      <main className={`flex-grow-1 ${isAuthPage ? '' : 'p-4 md:p-6 lg:p-8'}`}>
+      <main className={`flex-grow-1 ${isAuthPage ? "" : "p-4 md:p-6 lg:p-8"}`}>
         {isAuthPage ? (
           <Outlet />
         ) : (
