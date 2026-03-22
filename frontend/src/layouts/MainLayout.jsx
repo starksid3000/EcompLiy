@@ -9,23 +9,26 @@ import { Skeleton } from "primereact/skeleton";
 import UserMenu from "../components/UserMenu";
 import api from "../utils/api";
 import { Toast } from "primereact/toast";
-
+import useCartStore from "../store/cartStore";
 // Main Layout
 const MainLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { isAuthenticated, user, initializeAuth, logout, isLoading } =
     useAuthStore();
+  const { totalItems, fetchCart, resetCart } = useCartStore();
   const toast = useRef(null);
-
-  // cart item count
-  // Replace with: const { totalItems } = useCartStore();
-  const cartCount = 0;
 
   useEffect(() => {
     initializeAuth();
   }, []); // intentionally empty — initializeAuth should only run once on mount
+  useEffect(() => {
+    if (isAuthenticated && !isLoading) {
+      fetchCart();
+    }
+  }, [isAuthenticated, isLoading]);
 
+  //handling logout
   const handleLogout = async () => {
     try {
       await api.post("/auth/logout");
@@ -45,13 +48,14 @@ const MainLayout = () => {
       });
     } finally {
       logout();
+      resetCart();
       navigate("/login");
     }
   };
 
   // Memoized nav items so they don't re-create on every render
-  const items = useMemo(
-    () => [
+  const items = useMemo(() => {
+    const navItems = [
       {
         template: () => (
           <div
@@ -79,31 +83,36 @@ const MainLayout = () => {
           : "",
         command: () => navigate("/products"),
       },
-      {
+    ];
+
+    //show cart only if the user is authenticated
+    if (isAuthenticated) {
+      navItems.push({
         template: () => (
           <div
-            className={`p-menuitem-link flex align-items-center gap-2 cursor-pointer ${
-              location.pathname.startsWith("/cart")
-                ? "font-bold text-primary"
-                : ""
-            }`}
+            className={`p-menuitem-link flex align-items-center gap-2 cursor-pointer ${location.pathname.startsWith("/cart")}
+          ? "font-bold text-primary" : ""
+          `}
             onClick={() => navigate("/cart")}
             role="link"
-            aria-label={`Cart${cartCount > 0 ? `, ${cartCount} items` : ""}`}
+            aria-label={`Cart${totalItems > 0 ? `,${totalItems} items` : ""}`}
           >
             <span className="p-overlay-badge">
               <i className="pi pi-shopping-cart" />
-              {cartCount > 0 && <Badge value={cartCount} severity="danger" />}
+              {totalItems > 0 && <Badge value={totalItems} severity="danger" />}
             </span>
             <span>Cart</span>
           </div>
         ),
-      },
-    ],
-    [location.pathname, navigate, cartCount],
-  );
+      });
+    }
+    return navItems;
+  }, [location.pathname, navigate, totalItems, isAuthenticated]);
+
+  //check if the page is /login or /register
   const isAuthPage =
     location.pathname === "/login" || location.pathname === "/register";
+
   // Memoized end content
   const endContent = useMemo(
     () => (

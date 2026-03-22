@@ -9,6 +9,7 @@ import { ProgressSpinner } from "primereact/progressspinner";
 import { Card } from "primereact/card";
 import { Tag } from "primereact/tag";
 import { Paginator } from "primereact/paginator";
+import useCartStore from "../store/cartStore";
 const Products = () => {
   const toast = useRef(null);
   const [categories, setCategories] = useState([]);
@@ -20,8 +21,11 @@ const Products = () => {
   const [searchParams] = useSearchParams();
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [totalRecords, setTotalRecords] = useState(0);
+
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const searchQuery = searchParams.get("search") || "";
+  
+  const addToCart = useCartStore((s) => s.addToCart);
   useEffect(() => {
     fetchCategories();
   }, []);
@@ -83,7 +87,7 @@ const Products = () => {
     );
   }
   //handling add to cart
-  const handleAddToCart = () => {
+  const handleAddToCart = async (product) => {
     if (!isAuthenticated) {
       toast.current?.show({
         severity: "warn",
@@ -92,6 +96,22 @@ const Products = () => {
         life: 3000,
       });
       return;
+    }
+    const success = await addToCart(product.id);
+    if (success) {
+      toast.current?.show({
+        severity: "success",
+        summary: "Added to Cart",
+        detail: `${product.name} added to your cart`,
+        life: 2000,
+      });
+    } else {
+      toast.current?.show({
+        severity: "error",
+        summary: "Failed",
+        detail: "Could not add item to cart",
+        life: 3000,
+      });
     }
   };
   const header = (product) => (
