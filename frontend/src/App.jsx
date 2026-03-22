@@ -4,8 +4,8 @@ import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Products from "./pages/Products";
-import { ProtectedRoute } from "./components/ProtectedRoute";
 import Cart from "./pages/Cart";
+import { ProtectedRoute, AdminRoute } from "./components/ProtectedRoute";
 function App() {
   return (
     <Router>
@@ -19,7 +19,7 @@ function App() {
 
           {/* Authenticated Users route */}
           <Route
-            path="cart"
+            path="/cart"
             element={
               <ProtectedRoute>
                 <Cart />
