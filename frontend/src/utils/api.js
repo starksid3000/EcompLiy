@@ -3,7 +3,8 @@ import axios from "axios";
 const api = axios.create({
   baseURL: "/api/v1",
 });
-//Attaching accesstoken to every request
+
+// Request interceptor: attach access token to every request
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("accessToken");
@@ -15,17 +16,20 @@ api.interceptors.request.use(
   (error) => Promise.reject(error),
 );
 
-//401 error handler
+// Response interceptor: auto-refresh on 401
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
+
+    // Don't try to refresh on auth endpoints
     if (
       originalRequest.url.includes("/auth/login") ||
       originalRequest.url.includes("/auth/register")
     ) {
       return Promise.reject(error);
     }
+
     if (
       error.response &&
       error.response.status === 401 &&
@@ -33,7 +37,10 @@ api.interceptors.response.use(
     ) {
       originalRequest._retry = true;
       try {
-        const refreshToken = localStorage.getItem("accessToken");
+        const refreshToken = localStorage.getItem("refreshToken");
+        if (!refreshToken) {
+          throw new Error("No refresh token");
+        }
         const res = await axios.post("/api/v1/auth/refresh", null, {
           headers: { Authorization: `Bearer ${refreshToken}` },
         });
@@ -45,6 +52,7 @@ api.interceptors.response.use(
         return api(originalRequest);
       } catch (refreshError) {
         localStorage.removeItem("accessToken");
+        localStorage.removeItem("refreshToken");
         localStorage.removeItem("user");
         window.location.href = "/login";
         return Promise.reject(refreshError);
@@ -53,4 +61,5 @@ api.interceptors.response.use(
     return Promise.reject(error);
   },
 );
+
 export default api;

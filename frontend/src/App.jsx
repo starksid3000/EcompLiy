@@ -8,6 +8,7 @@ import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
 import { ProtectedRoute, AdminRoute } from "./components/ProtectedRoute";
 import ProductDetail from "./pages/ProductDetail";
+import Orders from "./pages/Orders";
 function App() {
   return (
     <Router>
@@ -20,24 +21,12 @@ function App() {
           <Route path="/products" element={<Products />} />
           <Route path="products/:id" element={<ProductDetail />} />
           {/* Authenticated Users route */}
-          <Route
-            path="/cart"
-            element={
-              <ProtectedRoute>
-                <Cart />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/checkout"
-            element={
-              <ProtectedRoute>
-                <Checkout />
-              </ProtectedRoute>
-            }
-          />
-          {/* Authenticated Admin route */}
-        </Route>
+          <Route path="cart" element={<ProtectedRoute><Cart /></ProtectedRoute>} />
+          <Route path="orders" element={<ProtectedRoute><Orders /></ProtectedRoute>} />
+          {/* <Route path="profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} /> */}
+          <Route path="checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
+          </Route>
+        {/* Authenticated Admin route */}
       </Routes>
     </Router>
   );
