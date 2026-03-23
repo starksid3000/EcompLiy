@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { Tag } from "primereact/tag";
@@ -8,7 +9,6 @@ import { Toast } from "primereact/toast";
 import { ConfirmDialog, confirmDialog } from "primereact/confirmdialog";
 import api from "../utils/api";
 
-//setting stautsseverity accoring to status of order
 const statusSeverity = {
   PENDING: "warning",
   PROCESSING: "info",
@@ -21,7 +21,8 @@ const Orders = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const toast = useRef(null);
-//fetch orders
+  const navigate = useNavigate();
+
   useEffect(() => {
     fetchOrders();
   }, []);
@@ -42,7 +43,7 @@ const Orders = () => {
       setLoading(false);
     }
   };
-  //handle order cancelation 
+
   const handleCancel = (order) => {
     confirmDialog({
       message: `Cancel order #${order.id.slice(0, 8)}...?`,
@@ -70,32 +71,43 @@ const Orders = () => {
       },
     });
   };
-  //status of the order
+
   const statusBody = (order) => (
-    <Tag value={order.status} severity={statusSeverity[order.status] || "info"} />
+    <Tag
+      value={order.status}
+      severity={statusSeverity[order.status] || "info"}
+    />
   );
 
-  //show amount paid
   const amountBody = (order) => (
     <span className="font-bold">${Number(order.total).toFixed(2)}</span>
   );
 
-  //date product ordered
-  const dateBody = (order) => new Date(order.createdAt).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
-//action button to delete product only visible when order status is pending
-  const actionBody = (order) =>
-    order.status === "PENDING" ? (
+  const dateBody = (order) =>
+    new Date(order.createdAt).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+
+  const actionBody = (order) => (
+    <div className="flex gap-2">
       <Button
-        icon="pi pi-times"
-        label="Cancel"
-        className="p-button-danger p-button-text p-button-sm"
-        onClick={() => handleCancel(order)}
+        icon="pi pi-eye"
+        className="p-button-rounded p-button-text p-button-sm"
+        tooltip="View Details"
+        onClick={() => navigate(`/orders/${order.id}`)}
       />
-    ) : null;
+      {order.status === "PENDING" && (
+        <Button
+          icon="pi pi-times"
+          className="p-button-rounded p-button-danger p-button-text p-button-sm"
+          tooltip="Cancel"
+          onClick={() => handleCancel(order)}
+        />
+      )}
+    </div>
+  );
 
   if (loading) {
     return (
@@ -131,10 +143,33 @@ const Orders = () => {
           rows={10}
           emptyMessage="No orders found"
         >
-          <Column header="Order #" sortable sortField="id" className="font-mono" body={(order) => order.id.slice(0, 8) + '...'} />
-          <Column body={statusBody} header="Status" sortable sortField="status" />
+          <Column
+            header="Order #"
+            sortable
+            sortField="id"
+            className="font-mono"
+            body={(order) => (
+              <span
+                className="text-primary cursor-pointer hover:underline font-semibold"
+                onClick={() => navigate(`/orders/${order.id}`)}
+              >
+                #{order.id.slice(0, 8)}...
+              </span>
+            )}
+          />
+          <Column
+            body={statusBody}
+            header="Status"
+            sortable
+            sortField="status"
+          />
           <Column body={amountBody} header="Total" sortable sortField="total" />
-          <Column body={dateBody} header="Date" sortable sortField="createdAt" />
+          <Column
+            body={dateBody}
+            header="Date"
+            sortable
+            sortField="createdAt"
+          />
           <Column field="shippingAddress" header="Shipping Address" />
           <Column body={actionBody} header="" style={{ width: "120px" }} />
         </DataTable>
