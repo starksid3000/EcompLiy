@@ -5,7 +5,9 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Products from "./pages/Products";
 import Cart from "./pages/Cart";
+import Checkout from "./pages/Checkout";
 import { ProtectedRoute, AdminRoute } from "./components/ProtectedRoute";
+import ProductDetail from "./pages/ProductDetail";
 function App() {
   return (
     <Router>
@@ -16,13 +18,21 @@ function App() {
           <Route path="login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/products" element={<Products />} />
-
+          <Route path="products/:id" element={<ProductDetail />} />
           {/* Authenticated Users route */}
           <Route
             path="/cart"
             element={
               <ProtectedRoute>
                 <Cart />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/checkout"
+            element={
+              <ProtectedRoute>
+                <Checkout />
               </ProtectedRoute>
             }
           />
