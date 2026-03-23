@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Toast } from "primereact/toast";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "primereact/button";
 import api from "../utils/api";
 import useAuthStore from "../store/authStore";
@@ -21,14 +21,17 @@ const Products = () => {
   const [searchParams] = useSearchParams();
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [totalRecords, setTotalRecords] = useState(0);
-
+  const navigate = useNavigate();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const searchQuery = searchParams.get("search") || "";
   
+  //fetch cart
   const addToCart = useCartStore((s) => s.addToCart);
   useEffect(() => {
     fetchCategories();
   }, []);
+
+  //fetch products keep rendering for array
   useEffect(() => {
     fetchProducts();
   }, [first, rows, selectedCategory, searchQuery]);
@@ -115,7 +118,9 @@ const Products = () => {
     }
   };
   const header = (product) => (
-    <div className="relative overflow-hidden" style={{ height: "220px" }}>
+    <div className="relative overflow-hidden" style={{ height: "220px" }}
+    onClick={() => navigate(`/products/${product.id}`)}
+    >
       <img
         alt={product.name}
         src={
