@@ -11,6 +11,7 @@ import ProductDetail from "./pages/ProductDetail";
 import Orders from "./pages/Orders";
 import OrderDetail from "./pages/OrderDetail";
 import Profile from "./pages/Profile";
+import AdminDashboard from "./pages/admin/AdminDashboard";
 function App() {
   return (
     <Router>
@@ -28,8 +29,9 @@ function App() {
           <Route path="orders/:id" element={<ProtectedRoute><OrderDetail /></ProtectedRoute>} />
           <Route path="profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           <Route path="checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
+         {/* Authenticated Admin route */}
+          <Route path="admin/dashboard" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>}/>
           </Route>
-        {/* Authenticated Admin route */}
       </Routes>
     </Router>
   );
