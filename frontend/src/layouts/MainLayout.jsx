@@ -54,6 +54,7 @@ const MainLayout = () => {
   };
 
   // Memoized nav items so they don't re-create on every render
+  const isAdmin = user?.role === "ADMIN";
   const items = useMemo(() => {
     const navItems = [
       {
@@ -106,13 +107,43 @@ const MainLayout = () => {
         ),
       });
     }
+    if (isAdmin) {
+      navItems.push({
+        label: "Admin",
+        icon: "pi pi-cog",
+        className: location.pathname.startsWith("/admin")
+          ? "font-bold text-primary"
+          : "",
+        items: [
+          {
+            label: "Dashboard",
+            icon: " pi pi-th-large",
+            command: () => navigate("/admin/dashboard"),
+          },
+          {
+            label: "Manage Products",
+            icon: " pi pi-box",
+            command: () => navigate("/admin/dashboard"),
+          },
+          {
+            label: "Manage Orders",
+            icon: " pi pi-list",
+            command: () => navigate("/admin/dashboard"),
+          },
+          {
+            label: "Manage Categories",
+            icon: " pi pi-tags",
+            command: () => navigate("/admin/dashboard"),
+          },
+        ],
+      });
+    }
     return navItems;
-  }, [location.pathname, navigate, totalItems, isAuthenticated]);
+  }, [location.pathname, navigate, totalItems, isAuthenticated, isAdmin]);
 
   //check if the page is /login or /register
   const isAuthPage =
     location.pathname === "/login" || location.pathname === "/register";
-
   // Memoized end content
   const endContent = useMemo(
     () => (
@@ -123,7 +154,14 @@ const MainLayout = () => {
           // Show skeleton while auth state is resolving
           <Skeleton shape="circle" size="2rem" />
         ) : isAuthenticated ? (
-          <UserMenu user={user} onLogout={handleLogout} />
+          <div className="flex align-items-center gap-2">
+            {isAdmin && (
+              <span className="hidden md:inline px-2 py-1 border-round-full text-xs font-bold bg-purple-100 text-purple-700">
+                ADMIN
+              </span>
+            )}
+            <UserMenu user={user} onLogout={handleLogout} />
+          </div>
         ) : (
           <Button
             label="Login"

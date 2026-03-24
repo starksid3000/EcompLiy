@@ -11,6 +11,7 @@ import ProductDetail from "./pages/ProductDetail";
 import Orders from "./pages/Orders";
 import OrderDetail from "./pages/OrderDetail";
 import Profile from "./pages/Profile";
+import AdminDashboard from "./pages/admin/AdminDashboard";
 function App() {
   return (
     <Router>
@@ -30,6 +31,7 @@ function App() {
           <Route path="checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
           </Route>
         {/* Authenticated Admin route */}
+        <Route path="admin/dashboard" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>}/>
       </Routes>
     </Router>
   );
