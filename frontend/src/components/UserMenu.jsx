@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { useRef } from "react";
+import { useRef} from "react";
 import { Avatar } from "primereact/avatar";
 import { OverlayPanel } from "primereact/overlaypanel";
 import { Toast } from "primereact/toast";
@@ -12,10 +12,8 @@ const getInitials = (firstName = "", lastName = "") =>
 const UserMenu = ({ user, onLogout }) => {
   const op = useRef(null);
   const navigate = useNavigate();
-
   const label = user?.firstName || "User";
   const hasAvatar = Boolean(user?.avatarUrl);
-
   return (
     <div className="flex align-items-center gap-2">
       <span className="hidden md:inline surface-100 px-2 py-1 border-round-full text-sm font-medium">
