@@ -11,5 +11,5 @@ export const AdminRoute = ({ children }) => {
   if (isLoading) return null;
   if (!isAuthenticated) return <Navigate to="/login" replace />;
   if (user?.role !== "ADMIN") return <Navigate to="/login" replace />;
-  return { children };
+  return children;
 };

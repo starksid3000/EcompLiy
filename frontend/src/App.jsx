@@ -13,6 +13,7 @@ import OrderDetail from "./pages/OrderDetail";
 import Profile from "./pages/Profile";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminProducts from "./pages/admin/AdminProducts";
+import AdminOrders from "./pages/admin/AdminOrders";
 function App() {
   return (
     <Router>
@@ -31,8 +32,9 @@ function App() {
           <Route path="profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           <Route path="checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
          {/* Authenticated Admin route */}
-          <Route path="admin/dashboard" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>}/>
-          <Route path="admin/products" element={<ProtectedRoute><AdminProducts /></ProtectedRoute>}/>
+          <Route path="admin/dashboard" element={<AdminRoute><AdminDashboard /></AdminRoute>}/>
+          <Route path="admin/products" element={<AdminRoute><AdminProducts /></AdminRoute>}/>
+          <Route path="admin/orders" element={<AdminRoute><AdminOrders /></AdminRoute>}/>
           </Route>
       </Routes>
     </Router>

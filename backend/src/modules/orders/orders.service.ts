@@ -81,16 +81,28 @@ export class OrdersService {
         page: number,
         limit: number,
     }>{
-        const {page=1, limit = 10, status,search} = query;
+        const {page=1, limit = 10,startDate,endDate, status,search} = query;
         const skip = (page-1) * limit;
 
         const where:any = {};
         if(status) where.status = status;
-        if(search)
-            where.OK = [
-        {id:{contains:search, mode: 'insensitive'}},
-        {orderNumber: {contains:search, mode:'insensitive'}}
-    ];
+        if (startDate || endDate) {
+  where.createdAt = {};
+
+  if (startDate) {
+    where.createdAt.gte = new Date(startDate);
+  }
+
+  if (endDate) {
+    where.createdAt.lte = new Date(endDate);
+  }
+}
+if (search) {
+  where.OR = [
+    { id: { contains: search, mode: 'insensitive' } },
+    { orderNumber: { contains: search, mode: 'insensitive' } },
+  ];
+}
     const [orders, total] = await Promise.all([
         this.prisma.order.findMany({
             where,
