@@ -123,17 +123,17 @@ const MainLayout = () => {
           {
             label: "Manage Products",
             icon: " pi pi-box",
-            command: () => navigate("/admin/dashboard"),
+            command: () => navigate("/admin/products"),
           },
           {
             label: "Manage Orders",
             icon: " pi pi-list",
-            command: () => navigate("/admin/dashboard"),
+            command: () => navigate("/admin/orders"),
           },
           {
             label: "Manage Categories",
             icon: " pi pi-tags",
-            command: () => navigate("/admin/dashboard"),
+            command: () => navigate("/admin/categories"),
           },
         ],
       });
