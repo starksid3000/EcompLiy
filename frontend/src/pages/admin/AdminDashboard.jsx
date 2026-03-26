@@ -56,7 +56,7 @@ const AdminDashboard = () => {
       icon: "pi pi-tags",
       color: "bg-purple-100",
       iconColor: "text-purple-600",
-      link: "/admin/category",
+      link: "/admin/categories",
     },
     {
       title: "Orders",

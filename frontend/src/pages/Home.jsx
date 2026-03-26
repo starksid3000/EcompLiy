@@ -65,29 +65,30 @@ const Home = () => {
       <Toast ref={toast} />
 
       {/* ──── Hero Section ──── */}
-      <div
-        className="relative overflow-hidden border-round-3xl mb-6 shadow-4"
-        style={{ minHeight: "65vh" }}
-      >
+      <div className="relative overflow-hidden border-round-3xl mb-6 shadow-4 min-h-[55vh] md:min-h-[70vh]">
         <div
-          className="absolute inset-0 w-full h-full bg-cover bg-center"
+          className="absolute inset-0 w-full h-full bg-cover bg-center bg-no-repeat"
           style={{
             backgroundImage:
               "url('https://primefaces.org/cdn/primereact/images/galleria/galleria4.jpg')",
           }}
         />
-        <div className="absolute inset-0 w-full h-full bg-black-alpha-30" />
-        <div className="relative z-1 flex flex-column align-items-center justify-content-center h-full py-8 px-4 text-center">
+        <div className="absolute inset-0 bg-gradient-to-b from-black-alpha-40 via-black-alpha-30 to-black-alpha-60" />
+
+        <div className="relative z-1 flex flex-column align-items-center justify-content-center h-full px-3 md:px-5 py-6 md:py-8 text-center">
           <div
-            className="surface-0 p-5 shadow-6 border-round-3xl mb-6"
+            className="p-4 md:p-6 border-round-3xl shadow-6 mb-5"
             style={{
-              backdropFilter: "blur(12px)",
-              backgroundColor: "rgba(255,255,255,0.9)",
+              backdropFilter: "blur(7px)",
+              background: "rgba(255,255,255,0.85)",
+              maxWidth: "650px",
+              width: "100%",
             }}
           >
-            <i className="pi pi-shopping-bag text-primary text-6xl mb-4 block" />
+            <i className="pi pi-shopping-bag text-primary text-4xl md:text-6xl mb-3 block" />
+
             <h1
-              className="text-6xl md:text-8xl font-black mb-4"
+              className="text-3xl md:text-6xl lg:text-7xl font-black mb-3"
               style={{
                 background:
                   "linear-gradient(90deg, var(--primary-color), var(--indigo-500))",
@@ -98,34 +99,28 @@ const Home = () => {
             >
               Future of Retail
             </h1>
-            <p
-              className="text-xl md:text-2xl font-medium mb-0 max-w-4xl line-height-3 mx-auto"
-              style={{
-                background: "linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%)",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-              }}
-            >
-              Experience the most premium, seamless shopping destination built
-              just for you. Discover curated collections and unmatched quality.
+
+            <p className="text-sm md:text-lg text-700 line-height-3 m-0">
+              Experience premium, seamless shopping with curated collections and
+              unmatched quality designed for modern customers.
             </p>
           </div>
-          <div className="flex flex-column md:flex-row gap-4">
+
+          <div className="flex flex-column sm:flex-row gap-3 md:gap-4">
             <Button
               label="Explore Collection"
               icon="pi pi-arrow-right"
               iconPos="right"
-              size="large"
-              className="p-button-rounded p-button-primary shadow-6 px-6 py-4 text-xl font-bold hover:scale-105 transition-transform transition-duration-300"
+              className="p-button-rounded p-button-primary px-5 py-3 md:px-6 md:py-4 text-sm md:text-lg font-semibold shadow-5 hover:scale-105 transition-transform"
               onClick={() => navigate("/products")}
             />
+
             {!isAuthenticated && (
               <Button
                 label="Join Now"
                 icon="pi pi-user"
-                size="large"
                 outlined
-                className="p-button-rounded p-button-primary shadow-6 px-6 py-4 text-xl font-bold hover:scale-105 transition-transform transition-duration-300"
+                className="p-button-rounded p-button-primary px-5 py-3 md:px-6 md:py-4 text-sm md:text-lg font-semibold shadow-5 hover:scale-105 transition-transform"
                 onClick={() => navigate("/register")}
               />
             )}
