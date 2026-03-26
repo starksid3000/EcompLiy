@@ -249,7 +249,7 @@ const ProductDetail = () => {
               </div>
             </div>
             {/* Add to cart */}
-            {product.stock > 0 ? (
+            {product.stock > 0 && product.isActive ? (
               <div className="flex flex-column sm:flex-row align-items-stretch sm:align-items-center gap-3">
                 <div className="flex align-items-center gap-2">
                   <label className="font-semibold text-900">Qty:</label>
@@ -278,7 +278,7 @@ const ProductDetail = () => {
               </div>
             ) : (
               <Button
-                label="Out of Stock"
+                label={product.stock === 0 ? "Out of Stock" : "Unavilable"}
                 icon="pi pi-times"
                 className="p-button-rounded p-button-lg p-button-danger w-full"
                 disabled
@@ -287,11 +287,13 @@ const ProductDetail = () => {
           </div>
         </div>
       </div>
-      
+
       {/* related product of same categories */}
-{relatedProducts.length > 0 && (
+      {relatedProducts.length > 0 && (
         <div className="mt-6">
-          <h2 className="text-900 font-bold text-2xl mb-4">You May Also Like</h2>
+          <h2 className="text-900 font-bold text-2xl mb-4">
+            You May Also Like
+          </h2>
           <div className="grid">
             {relatedProducts.map((rp) => (
               <div key={rp.id} className="col-12 md:col-6 lg:col-3 p-2">
@@ -300,7 +302,10 @@ const ProductDetail = () => {
                   onClick={() => navigate(`/products/${rp.id}`)}
                 >
                   <img
-                    src={rp.imageUrl || "https://primefaces.org/cdn/primereact/images/usercard.png"}
+                    src={
+                      rp.imageUrl ||
+                      "https://primefaces.org/cdn/primereact/images/usercard.png"
+                    }
                     alt={rp.name}
                     className="w-full"
                     style={{ height: "180px", objectFit: "cover" }}

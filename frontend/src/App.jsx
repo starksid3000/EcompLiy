@@ -14,6 +14,8 @@ import Profile from "./pages/Profile";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminProducts from "./pages/admin/AdminProducts";
 import AdminOrders from "./pages/admin/AdminOrders";
+import AdminCategories from "./pages/admin/AdminCategories";
+import NotFound from "./pages/Notfound";
 function App() {
   return (
     <Router>
@@ -35,6 +37,10 @@ function App() {
           <Route path="admin/dashboard" element={<AdminRoute><AdminDashboard /></AdminRoute>}/>
           <Route path="admin/products" element={<AdminRoute><AdminProducts /></AdminRoute>}/>
           <Route path="admin/orders" element={<AdminRoute><AdminOrders /></AdminRoute>}/>
+          <Route path="admin/categories" element={<AdminRoute><AdminCategories /></AdminRoute>}/>
+
+          {/* 404 */}
+          <Route path="*" element={<NotFound />}/>
           </Route>
       </Routes>
     </Router>
