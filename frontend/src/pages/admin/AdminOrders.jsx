@@ -10,6 +10,8 @@ import { Toast } from "primereact/toast";
 import { ConfirmDialog, confirmDialog } from "primereact/confirmdialog";
 import { Calendar } from "primereact/calendar";
 import api from "../../utils/api";
+import MobilePaginator from "../../components/MobilePaginator";
+import { Paginator } from "primereact/paginator";
 
 const statusOptions = [
   { label: "Pending", value: "PENDING" },
@@ -251,7 +253,7 @@ const AdminOrders = () => {
           responsiveLayout="scroll"
           className="shadow-2 border-round-xl"
           stripedRows
-          paginator
+          paginator={false}
           first={lazyParams.first}
           rows={lazyParams.rows}
           totalRecords={totalRecords}
@@ -291,7 +293,29 @@ const AdminOrders = () => {
           />
         </DataTable>
       )}
+      {totalRecords > lazyParams.rows && (
+        <div className="flex justify-content-center mt-4">
+          {/* Mobile paginator */}
+          <MobilePaginator
+            first={lazyParams.first}
+            rows={lazyParams.rows}
+            totalRecords={totalRecords}
+            onPageChange={onPage}
+          />
 
+          {/* Desktop paginator */}
+          <div className="hidden md:flex">
+            <Paginator
+              first={lazyParams.first}
+              rows={lazyParams.rows}
+              totalRecords={totalRecords}
+              rowsPerPageOptions={[5, 10, 25]}
+              onPageChange={onPage}
+              className="border-round-xl"
+            />
+          </div>
+        </div>
+      )}
       {/* Update Status Dialog */}
       <Dialog
         visible={updateDialogVisible}

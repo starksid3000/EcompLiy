@@ -10,6 +10,7 @@ import { Card } from "primereact/card";
 import { Tag } from "primereact/tag";
 import { Paginator } from "primereact/paginator";
 import useCartStore from "../store/cartStore";
+import MobilePaginator from "../components/MobilePaginator";
 const Products = () => {
   const toast = useRef(null);
   const [categories, setCategories] = useState([]);
@@ -271,14 +272,23 @@ const Products = () => {
           {/* Pagination */}
           {totalRecords > rows && (
             <div className="flex justify-content-center mt-5">
-              <Paginator
+              <MobilePaginator
                 first={first}
                 rows={rows}
                 totalRecords={totalRecords}
-                rowsPerPageOptions={[8, 12, 24]}
                 onPageChange={onPageChange}
-                className="border-round-xl"
               />
+
+              <div className="hidden md:flex">
+                <Paginator
+                  first={first}
+                  rows={rows}
+                  totalRecords={totalRecords}
+                  rowsPerPageOptions={[8, 12, 24]}
+                  onPageChange={onPageChange}
+                  className="border-round-xl"
+                />
+              </div>
             </div>
           )}
         </>
