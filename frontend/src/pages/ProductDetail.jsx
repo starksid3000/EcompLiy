@@ -14,85 +14,102 @@ import { InputNumber } from "primereact/inputnumber";
 // Shows a magnified view in the right/bottom panel when hovering the product image
 const ZoomImage = ({ src, alt }) => {
   const containerRef = useRef(null);
-  const [lensPos, setLensPos] = useState({ x: 0, y: 0 });
   const [showZoom, setShowZoom] = useState(false);
-  const [zoomBg, setZoomBg] = useState({ x: 0, y: 0 });
+  const [lens, setLens] = useState({ x: 0, y: 0 });
+  const [bgPos, setBgPos] = useState({ x: 0, y: 0 });
 
-  const LENS_SIZE = 120; // px
-  const ZOOM_FACTOR = 2.5;
+  const LENS_SIZE = 140;
+  const ZOOM = 3;
 
-  const handleMouseMove = (e) => {
-    const el = containerRef.current;
-    if (!el) return;
-    const rect = el.getBoundingClientRect();
-    let x = e.clientX - rect.left - LENS_SIZE / 2;
-    let y = e.clientY - rect.top - LENS_SIZE / 2;
-    x = Math.max(0, Math.min(x, rect.width - LENS_SIZE));
-    y = Math.max(0, Math.min(y, rect.height - LENS_SIZE));
-    setLensPos({ x, y });
+  const handleMove = (e) => {
+    const rect = containerRef.current.getBoundingClientRect();
 
-    // Background position for the zoom panel
-    const bgX = -x * ZOOM_FACTOR;
-    const bgY = -y * ZOOM_FACTOR;
-    setZoomBg({ x: bgX, y: bgY });
+    let x = e.clientX - rect.left;
+    let y = e.clientY - rect.top;
+
+    x = Math.max(LENS_SIZE / 2, Math.min(x, rect.width - LENS_SIZE / 2));
+    y = Math.max(LENS_SIZE / 2, Math.min(y, rect.height - LENS_SIZE / 2));
+
+    setLens({ x, y });
+
+    const percentX = x / rect.width;
+    const percentY = y / rect.height;
+
+    setBgPos({
+      x: percentX * 100,
+      y: percentY * 100,
+    });
   };
 
   return (
-    <div className="relative" style={{ userSelect: "none" }}>
-      {/* Main image container */}
+    <div className="relative w-full" style={{ userSelect: "none" }}>
+      {/* Main Image */}
       <div
         ref={containerRef}
         className="relative overflow-hidden border-round-2xl shadow-2"
-        style={{ maxHeight: 500, cursor: "crosshair" }}
+        style={{
+          height: "420px",
+          cursor: "zoom-in",
+        }}
         onMouseEnter={() => setShowZoom(true)}
         onMouseLeave={() => setShowZoom(false)}
-        onMouseMove={handleMouseMove}
+        onMouseMove={handleMove}
       >
         <img
           src={src}
           alt={alt}
-          className="w-full"
-          style={{ display: "block", height: 440, objectFit: "cover" }}
+          className="w-full h-full"
+          style={{
+            objectFit: "cover",
+            transition: "transform 0.3s ease",
+          }}
           draggable={false}
         />
 
-        {/* Lens highlight */}
+        {/* Lens */}
         {showZoom && (
           <div
             style={{
               position: "absolute",
-              left: lensPos.x,
-              top: lensPos.y,
+              left: lens.x - LENS_SIZE / 2,
+              top: lens.y - LENS_SIZE / 2,
               width: LENS_SIZE,
               height: LENS_SIZE,
-              border: "2px solid var(--primary-color)",
-              borderRadius: 4,
-              background: "rgba(var(--primary-color-rgb, 0,148,213), 0.12)",
+              borderRadius: "50%",
+              background:
+                "radial-gradient(circle, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.05) 70%)",
+              border: "1px solid rgba(255,255,255,0.4)",
+              backdropFilter: "blur(4px)",
               pointerEvents: "none",
-              boxSizing: "border-box",
             }}
           />
         )}
       </div>
 
-      {/* Zoom result panel — overlaps right side on desktop, bottom on mobile */}
-      {showZoom && (
-        <div
-          className="absolute hidden md:block shadow-6 border-round-xl overflow-hidden"
-          style={{
-            left: "calc(100% + 12px)",
-            top: 0,
-            width: 380,
-            height: 440,
-            backgroundImage: `url(${src})`,
-            backgroundRepeat: "no-repeat",
-            backgroundSize: `calc(100% * ${ZOOM_FACTOR}) auto`,
-            backgroundPosition: `${zoomBg.x}px ${zoomBg.y}px`,
-            border: "1px solid var(--surface-border)",
-            zIndex: 50,
-          }}
-        />
-      )}
+      {/* Zoom Panel */}
+      <div
+        className="hidden md:block absolute border-round-xl shadow-6 overflow-hidden"
+        style={{
+          top: 0,
+          left: "calc(100% + 16px)",
+          width: "420px",
+          height: "420px",
+          backgroundImage: `url(${src})`,
+          backgroundRepeat: "no-repeat",
+          backgroundSize: `${ZOOM * 100}%`,
+          backgroundPosition: `${bgPos.x}% ${bgPos.y}%`,
+          opacity: showZoom ? 1 : 0,
+          transform: showZoom ? "scale(1)" : "scale(0.95)",
+          transition: "all 0.25s ease",
+          border: "1px solid var(--surface-border)",
+          zIndex: 20,
+        }}
+      />
+
+      {/* Mobile Zoom Hint */}
+      <div className="md:hidden text-center mt-2 text-500 text-xs">
+        Tap image to view
+      </div>
     </div>
   );
 };

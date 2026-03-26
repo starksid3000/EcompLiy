@@ -16,6 +16,7 @@ import AdminProducts from "./pages/admin/AdminProducts";
 import AdminOrders from "./pages/admin/AdminOrders";
 import AdminCategories from "./pages/admin/AdminCategories";
 import NotFound from "./pages/Notfound";
+import AdminUsers from "./pages/admin/AdminUsers";
 function App() {
   return (
     <Router>
@@ -38,7 +39,7 @@ function App() {
           <Route path="admin/products" element={<AdminRoute><AdminProducts /></AdminRoute>}/>
           <Route path="admin/orders" element={<AdminRoute><AdminOrders /></AdminRoute>}/>
           <Route path="admin/categories" element={<AdminRoute><AdminCategories /></AdminRoute>}/>
-
+          <Route path="admin/users" element={<AdminRoute><AdminUsers /></AdminRoute>} />
           {/* 404 */}
           <Route path="*" element={<NotFound />}/>
           </Route>

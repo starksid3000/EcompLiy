@@ -135,6 +135,11 @@ const MainLayout = () => {
             icon: " pi pi-tags",
             command: () => navigate("/admin/categories"),
           },
+          {
+            label: "Manage Users",
+            icon: " pi pi-tags",
+            command: () => navigate("/admin/users"),
+          },
         ],
       });
     }
