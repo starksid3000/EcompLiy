@@ -98,11 +98,11 @@ const MainLayout = () => {
             role="link"
             aria-label={`Cart${totalItems > 0 ? `,${totalItems} items` : ""}`}
           >
+            <i className="pi pi-shopping-cart" />
             <span className="p-overlay-badge">
-              <i className="pi pi-shopping-cart" />
+              <span>Cart</span>
               {totalItems > 0 && <Badge value={totalItems} severity="danger" />}
             </span>
-            <span>Cart</span>
           </div>
         ),
       });
@@ -195,11 +195,11 @@ const MainLayout = () => {
         />
       </header>
 
-      <main className={`flex-grow-1 ${isAuthPage ? "" : "p-4 md:p-6 lg:p-8"}`}>
+      <main className={`flex-grow-1 ${isAuthPage ? "" : "p-2 md:p-3 lg:p-4"}`}>
         {isAuthPage ? (
           <Outlet />
         ) : (
-          <div className="surface-card border-round-2xl shadow-3 p-5 flex-grow-1">
+          <div className="p-1 flex-grow-1">
             <Outlet />
           </div>
         )}

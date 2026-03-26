@@ -9,6 +9,94 @@ import { Button } from "primereact/button";
 import { Tag } from "primereact/tag";
 import { Divider } from "primereact/divider";
 import { InputNumber } from "primereact/inputnumber";
+
+// ── Amazon-style Image Zoom ────────────────────────────────────────────────
+// Shows a magnified view in the right/bottom panel when hovering the product image
+const ZoomImage = ({ src, alt }) => {
+  const containerRef = useRef(null);
+  const [lensPos, setLensPos] = useState({ x: 0, y: 0 });
+  const [showZoom, setShowZoom] = useState(false);
+  const [zoomBg, setZoomBg] = useState({ x: 0, y: 0 });
+
+  const LENS_SIZE = 120; // px
+  const ZOOM_FACTOR = 2.5;
+
+  const handleMouseMove = (e) => {
+    const el = containerRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    let x = e.clientX - rect.left - LENS_SIZE / 2;
+    let y = e.clientY - rect.top - LENS_SIZE / 2;
+    x = Math.max(0, Math.min(x, rect.width - LENS_SIZE));
+    y = Math.max(0, Math.min(y, rect.height - LENS_SIZE));
+    setLensPos({ x, y });
+
+    // Background position for the zoom panel
+    const bgX = -x * ZOOM_FACTOR;
+    const bgY = -y * ZOOM_FACTOR;
+    setZoomBg({ x: bgX, y: bgY });
+  };
+
+  return (
+    <div className="relative" style={{ userSelect: "none" }}>
+      {/* Main image container */}
+      <div
+        ref={containerRef}
+        className="relative overflow-hidden border-round-2xl shadow-2"
+        style={{ maxHeight: 500, cursor: "crosshair" }}
+        onMouseEnter={() => setShowZoom(true)}
+        onMouseLeave={() => setShowZoom(false)}
+        onMouseMove={handleMouseMove}
+      >
+        <img
+          src={src}
+          alt={alt}
+          className="w-full"
+          style={{ display: "block", height: 440, objectFit: "cover" }}
+          draggable={false}
+        />
+
+        {/* Lens highlight */}
+        {showZoom && (
+          <div
+            style={{
+              position: "absolute",
+              left: lensPos.x,
+              top: lensPos.y,
+              width: LENS_SIZE,
+              height: LENS_SIZE,
+              border: "2px solid var(--primary-color)",
+              borderRadius: 4,
+              background: "rgba(var(--primary-color-rgb, 0,148,213), 0.12)",
+              pointerEvents: "none",
+              boxSizing: "border-box",
+            }}
+          />
+        )}
+      </div>
+
+      {/* Zoom result panel — overlaps right side on desktop, bottom on mobile */}
+      {showZoom && (
+        <div
+          className="absolute hidden md:block shadow-6 border-round-xl overflow-hidden"
+          style={{
+            left: "calc(100% + 12px)",
+            top: 0,
+            width: 380,
+            height: 440,
+            backgroundImage: `url(${src})`,
+            backgroundRepeat: "no-repeat",
+            backgroundSize: `calc(100% * ${ZOOM_FACTOR}) auto`,
+            backgroundPosition: `${zoomBg.x}px ${zoomBg.y}px`,
+            border: "1px solid var(--surface-border)",
+            zIndex: 50,
+          }}
+        />
+      )}
+    </div>
+  );
+};
+
 const ProductDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -24,9 +112,7 @@ const ProductDetail = () => {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const addToCart = useCartStore((s) => s.addToCart);
 
-  useEffect(() => {
-    fetchProduct();
-  }, [id]);
+  useEffect(() => { fetchProduct(); }, [id]);
 
   const fetchProduct = async () => {
     try {
@@ -36,17 +122,12 @@ const ProductDetail = () => {
       const data = res.data?.data || res.data;
       setProduct(data);
 
-      // Fetch related products from same category
       if (data?.categoryId) {
         try {
-          const relRes = await api.get("/products", {
-            params: { category: data.categoryId, limit: 4 },
-          });
+          const relRes = await api.get("/products", { params: { category: data.categoryId, limit: 4 } });
           const related = (relRes.data?.data || []).filter((p) => p.id !== id);
           setRelatedProducts(related.slice(0, 4));
-        } catch {
-          /* silent */
-        }
+        } catch { /* silent */ }
       }
     } catch {
       setError("Product not found or failed to load.");
@@ -55,44 +136,27 @@ const ProductDetail = () => {
     }
   };
 
-  //handling add to cart
   const handleAddToCart = async () => {
     if (!isAuthenticated) {
-      toast.current?.show({
-        severity: "warn",
-        summary: "Login required",
-        detail: "Please login to add item to cart",
-        life: 2000,
-      });
+      toast.current?.show({ severity: "warn", summary: "Login required", detail: "Please login to add item to cart", life: 2000 });
       return navigate("/login");
     }
     setAdding(true);
     try {
       await addToCart(product.id, quantity);
-      toast.current?.show({
-        severity: "success",
-        summary: "Added to cart",
-        detail: `${quantity}x ${product.name} added`,
-        life: 2000,
-      });
+      toast.current?.show({ severity: "success", summary: "Added to cart", detail: `${quantity}x ${product.name} added`, life: 2000 });
     } catch {
-      toast.current?.show({
-        severity: "error",
-        summary: "Error",
-        detail: "Could not add to cart",
-        life: 2000,
-      });
+      toast.current?.show({ severity: "error", summary: "Error", detail: "Could not add to cart", life: 2000 });
     } finally {
       setAdding(false);
     }
   };
+
   if (loading) {
     return (
       <div className="px-2 py-4 md:px-4 lg:px-6">
         <div className="grid">
-          <div className="col-12 md:col-6 p-3">
-            <Skeleton height="450px" borderRadius="16px" />
-          </div>
+          <div className="col-12 md:col-6 p-3"><Skeleton height="450px" borderRadius="16px" /></div>
           <div className="col-12 md:col-6 p-3">
             <Skeleton width="60%" height="2.5rem" className="mb-3" />
             <Skeleton width="30%" height="1.5rem" className="mb-4" />
@@ -104,151 +168,103 @@ const ProductDetail = () => {
       </div>
     );
   }
+
   if (error || !product) {
     return (
       <div className="flex flex-column align-items-center justify-content-center py-8">
         <i className="pi pi-exclamation-triangle text-6xl text-orange-500 mb-4" />
-        <h2 className="text-700 font-medium mb-3">
-          {error || "Product not found"}
-        </h2>
-        <Button
-          label="Back to products"
-          icon="pi pi-arrow-left"
-          className="p-button-rounded"
-          onClick={() => navigate("/products")}
-        />
+        <h2 className="text-700 font-medium mb-3">{error || "Product not found"}</h2>
+        <Button label="Back to products" icon="pi pi-arrow-left" className="p-button-rounded" onClick={() => navigate("/products")} />
       </div>
     );
   }
-  const stockStatus = (stock) => {
-    if (stock === 0)
-      return {
-        label: "Out of Stock",
-        severity: "danger",
-        icon: "pi pi-times-circle",
-      };
-    if (stock <= 5)
-      return {
-        label: `Only ${stock} left!`,
-        severity: "warning",
-        icon: "pi pi-exclamation-triangle",
-      };
-    return {
-      label: "In Stock",
-      severity: "success",
-      icon: "pi pi-check-circle",
-    };
-  };
 
+  const stockStatus = (stock) => {
+    if (stock === 0) return { label: "Out of Stock", severity: "danger", icon: "pi pi-times-circle" };
+    if (stock <= 5) return { label: `Only ${stock} left!`, severity: "warning", icon: "pi pi-exclamation-triangle" };
+    return { label: "In Stock", severity: "success", icon: "pi pi-check-circle" };
+  };
   const stock = stockStatus(product.stock);
+
   return (
     <div className="px-2 py-4 md:px-4 lg:px-6">
       <Toast ref={toast} />
-      {/* setting navigation */}
-      <div className="flex align-items-center gap-2 mb-4 text-500">
-        <span
-          className="cursor-pointer hover:text-primary"
-          onClick={() => navigate("/")}
-        >
-          Home
-        </span>
+
+      {/* Breadcrumb */}
+      <div className="flex align-items-center gap-2 mb-4 text-500 flex-wrap">
+        <span className="cursor-pointer hover:text-primary" onClick={() => navigate("/")}>Home</span>
         <i className="pi pi-chevron-right text-xs" />
-        <span
-          className="cursor-pointer hover:text-primary"
-          onClick={() => navigate("/products")}
-        >
-          Products
-        </span>
+        <span className="cursor-pointer hover:text-primary" onClick={() => navigate("/products")}>Products</span>
         <i className="pi pi-chevron-right text-xs" />
         <span className="text-900 font-medium">{product.name}</span>
       </div>
 
       {/* Product Detail */}
       <div className="grid">
-        {/* image */}
-        <div className="col-12 md:col-6 p-3">
-          <div
-            className="surface-card shadow-2 border-round-2xl overflow-hidden"
-            style={{ maxHeight: "500px" }}
-          >
-            <img
-              src={product.imageUrl}
-              alt={product.name}
-              className="w-full"
-              style={{ objectFit: "cover", maxHeight: "500px" }}
-            />
-          </div>
+        {/* ── Image with Amazon-style zoom ─────────────────────────────────── */}
+        <div className="col-12 md:col-6 p-3" style={{ position: "relative" }}>
+          <ZoomImage
+            src={product.imageUrl || "https://primefaces.org/cdn/primereact/images/usercard.png"}
+            alt={product.name}
+          />
+          <p className="text-400 text-xs text-center mt-2 hidden md:block">
+            <i className="pi pi-search-plus mr-1" />
+            Hover to zoom
+          </p>
         </div>
-        {/* product detial */}
+
+        {/* ── Info Panel ────────────────────────────────────────────────────── */}
         <div className="col-12 md:col-6 p-3">
-          <div className="surface-card shadow-2 border-round-2xl p-5 h-full">
-            {/* category name */}
-            <Tag
-              value={product.category || "Uncategorized"}
-              severity="info"
-              className="mb-3"
-            />
-            {/* name */}
-            <h1 className="text-900 font-bold text-3xl md:text-4xl m-0 mb-3 line-height-2">
-              {product.name}
-            </h1>
+          <div className="surface-card shadow-2 border-round-2xl p-4 md:p-5 h-full">
+            <Tag value={product.category || "Uncategorized"} severity="info" className="mb-3" />
+            <h1 className="text-900 font-bold text-2xl md:text-4xl m-0 mb-3 line-height-2">{product.name}</h1>
+
             {/* Price */}
             <div className="flex align-items-center gap-3 mb-4">
               <span
-                className="text-4xl font-black"
-                style={{
-                  background:
-                    "linear-gradient(90deg, var(--primary-color), var(--indigo-500)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                }}
+                className="text-3xl md:text-4xl font-black"
+                style={{ background: "linear-gradient(90deg, var(--primary-color), var(--indigo-500))", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}
               >
                 ${Number(product.price).toFixed(2)}
               </span>
             </div>
-            {/* stock status */}
+
+            {/* Stock */}
             <div className="flex align-items-center gap-2 mb-4">
-              <i
-                className={`${stock.icon} text-${stock.severity === "success" ? "green" : stock.severity === "warning" ? "orange" : "red"}-500`}
-              />
+              <i className={`${stock.icon} text-${stock.severity === "success" ? "green" : stock.severity === "warning" ? "orange" : "red"}-500`} />
               <Tag value={stock.label} severity={stock.severity} />
             </div>
+
             <Divider />
-            {/* description */}
+
             <h3 className="text-900 font-bold text-lg mb-2">Description</h3>
             <p className="text-600 line-height-3 text-base mb-4">
               {product.description || "No description available"}
             </p>
+
             <Divider />
-            {/* info */}
+
+            {/* Metadata grid */}
             <div className="grid mb-4">
               <div className="col-6">
                 <span className="text-500 text-sm block mb-1">SKU</span>
-                <span className="text-900 font-mono font-semibold">
-                  {product.sku || "N/A"}
-                </span>
+                <span className="text-900 font-mono font-semibold">{product.sku || "N/A"}</span>
               </div>
               <div className="col-6">
-                <span className="text-500 text-sm block mb1">Category</span>
-                <span className="text-900 font-semibold">
-                  {product.category}
-                </span>
+                <span className="text-500 text-sm block mb-1">Category</span>
+                <span className="text-900 font-semibold">{product.category}</span>
               </div>
               <div className="col-6 mt-2">
                 <span className="text-500 text-sm block mb-1">Stock</span>
-                <span className="text-900 font-semibold">
-                  {product.stock} units
-                </span>
+                <span className="text-900 font-semibold">{product.stock} units</span>
               </div>
               <div className="col-6 mt-2">
                 <span className="text-500 text-sm block mb-1">Status</span>
-                <Tag
-                  value={product.isActive ? "Active" : "InActive"}
-                  severity={product.isActive ? "success" : "danger"}
-                />
+                <Tag value={product.isActive ? "Active" : "Inactive"} severity={product.isActive ? "success" : "danger"} />
               </div>
             </div>
-            {/* Add to cart */}
+
+            {/* Add to Cart */}
             {product.stock > 0 && product.isActive ? (
               <div className="flex flex-column sm:flex-row align-items-stretch sm:align-items-center gap-3">
                 <div className="flex align-items-center gap-2">
@@ -278,7 +294,7 @@ const ProductDetail = () => {
               </div>
             ) : (
               <Button
-                label={product.stock === 0 ? "Out of Stock" : "Unavilable"}
+                label={product.stock === 0 ? "Out of Stock" : "Unavailable"}
                 icon="pi pi-times"
                 className="p-button-rounded p-button-lg p-button-danger w-full"
                 disabled
@@ -288,35 +304,30 @@ const ProductDetail = () => {
         </div>
       </div>
 
-      {/* related product of same categories */}
+      {/* Related Products */}
       {relatedProducts.length > 0 && (
         <div className="mt-6">
-          <h2 className="text-900 font-bold text-2xl mb-4">
-            You May Also Like
-          </h2>
+          <h2 className="text-900 font-bold text-2xl mb-4">You May Also Like</h2>
           <div className="grid">
             {relatedProducts.map((rp) => (
-              <div key={rp.id} className="col-12 md:col-6 lg:col-3 p-2">
+              <div key={rp.id} className="col-6 md:col-6 lg:col-3 p-2">
                 <div
                   className="surface-card shadow-2 border-round-xl overflow-hidden cursor-pointer hover:shadow-6 transition-all transition-duration-300"
                   onClick={() => navigate(`/products/${rp.id}`)}
                 >
-                  <img
-                    src={
-                      rp.imageUrl ||
-                      "https://primefaces.org/cdn/primereact/images/usercard.png"
-                    }
-                    alt={rp.name}
-                    className="w-full"
-                    style={{ height: "180px", objectFit: "cover" }}
-                  />
+                  <div className="overflow-hidden" style={{ height: 160 }}>
+                    <img
+                      src={rp.imageUrl || "https://primefaces.org/cdn/primereact/images/usercard.png"}
+                      alt={rp.name}
+                      className="w-full h-full"
+                      style={{ objectFit: "cover", transition: "transform 0.3s" }}
+                      onMouseOver={(e) => (e.currentTarget.style.transform = "scale(1.07)")}
+                      onMouseOut={(e) => (e.currentTarget.style.transform = "scale(1)")}
+                    />
+                  </div>
                   <div className="p-3">
-                    <h4 className="text-900 font-bold m-0 mb-1 white-space-nowrap overflow-hidden text-overflow-ellipsis">
-                      {rp.name}
-                    </h4>
-                    <span className="text-primary font-bold text-lg">
-                      ${Number(rp.price).toFixed(2)}
-                    </span>
+                    <h4 className="text-900 font-bold m-0 mb-1 white-space-nowrap overflow-hidden text-overflow-ellipsis">{rp.name}</h4>
+                    <span className="text-primary font-bold text-lg">${Number(rp.price).toFixed(2)}</span>
                   </div>
                 </div>
               </div>
