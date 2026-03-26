@@ -283,7 +283,7 @@ const AdminCategories = () => {
         responsiveLayout="scroll"
         className="shadow-2 border-round-xl"
         stripedRows
-        paginator
+        paginator={false}
         rows={10}
         emptyMessage="No categories found"
         sortField="name"
@@ -333,7 +333,6 @@ const AdminCategories = () => {
         />
         <Column body={actionBody} header="Actions" style={{ width: "100px" }} />
       </DataTable>
-
       {/* Create/Edit Dialog */}
       <Dialog
         visible={dialogVisible}
