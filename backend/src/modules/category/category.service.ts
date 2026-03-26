@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { CategoryResponseDto } from './dto/category-response.dto';
@@ -22,7 +22,7 @@ export class CategoryService {
         name
         .toLowerCase()
         .replace(/\s+/g, '-')
-        .replace(/[^w-]/g, '');
+        .replace(/[^\w-]/g, '');
         const existingCategory = await this.prisma.category.findUnique({
             where: {slug: categorySlug},
         })
@@ -125,12 +125,13 @@ export class CategoryService {
         if(!existingCatergory){
             throw new NotFoundException('Category not found');
         }
-        if(updateCategoryDto.slug && updateCategoryDto !== existingCatergory.slug){
+        if(updateCategoryDto.slug && updateCategoryDto.slug !== existingCatergory.slug){
             const slugTaken = await this.prisma.category.findUnique({
                 where: {slug:updateCategoryDto.slug},
             })
             if(slugTaken)
-                throw new NotFoundException(`Category with ${updateCategoryDto.slug} is already taken, try another`)
+                throw new ConflictException(`Category with slug ${updateCategoryDto.slug} already exists`,
+);
         }
             const updatedCategory = await this.prisma.category.update({
                 where: {id},

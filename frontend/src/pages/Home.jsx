@@ -146,7 +146,7 @@ const Home = () => {
             label="View All"
             icon="pi pi-arrow-right"
             iconPos="right"
-            className="p-button-text p-button-sm"
+            className="p-button-text p-button-small"
             onClick={() => navigate("/products")}
           />
         </div>
@@ -207,7 +207,7 @@ const Home = () => {
                       </div>
                     }
                     footer={
-                      <div className="flex justify-content-between align-items-center">
+                      <div className="flex flex-wrap justify-content-between align-items-center gap-2">
                         <span className="text-2xl font-bold text-primary">
                           ${Number(product.price).toFixed(2)}
                         </span>

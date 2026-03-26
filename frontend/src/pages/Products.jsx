@@ -14,6 +14,7 @@ const Products = () => {
   const toast = useRef(null);
   const [categories, setCategories] = useState([]);
   const [products, setProducts] = useState([]);
+  const [addingId, setAddingId] = useState(null);
   const [first, setFirst] = useState(0);
   const [rows, setRows] = useState(12);
   const [loading, setLoading] = useState(true);
@@ -24,7 +25,7 @@ const Products = () => {
   const navigate = useNavigate();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const searchQuery = searchParams.get("search") || "";
-  
+
   //fetch cart
   const addToCart = useCartStore((s) => s.addToCart);
   useEffect(() => {
@@ -100,26 +101,31 @@ const Products = () => {
       });
       return;
     }
-    const success = await addToCart(product.id);
-    if (success) {
+    setAddingId(product.id);
+    try {
+      await addToCart(product.id);
       toast.current?.show({
         severity: "success",
         summary: "Added to Cart",
         detail: `${product.name} added to your cart`,
         life: 2000,
       });
-    } else {
+    } catch {
       toast.current?.show({
         severity: "error",
         summary: "Failed",
         detail: "Could not add item to cart",
         life: 3000,
       });
+    } finally {
+      setAddingId(null);
     }
   };
   const header = (product) => (
-    <div className="relative overflow-hidden" style={{ height: "220px" }}
-    onClick={() => navigate(`/products/${product.id}`)}
+    <div
+      className="relative overflow-hidden"
+      style={{ height: "220px" }}
+      onClick={() => navigate(`/products/${product.id}`)}
     >
       <img
         alt={product.name}
@@ -134,7 +140,7 @@ const Products = () => {
       />
       {product.stock <= 5 && product.stock > 0 && (
         <Tag
-          value="Low Stock"
+          value="Limited Stock"
           severity="warning"
           className="absolute"
           style={{ top: "10px", right: "10px" }}
@@ -148,23 +154,46 @@ const Products = () => {
           style={{ top: "10px", right: "10px" }}
         />
       )}
+      {product.stock > 0 && !product.isActive && (
+        <Tag
+          value="Unavailable"
+          severity="warning"
+          className="absolute"
+          style={{ top: "10px", right: "10px" }}
+        />
+      )}
     </div>
   );
 
-  const footer = (product) => (
-    <div className="flex flex-wrap justify-content-between align-items-center gap-2">
-      <span className="text-2xl font-bold text-primary">
-        ${Number(product.price).toFixed(2)}
-      </span>
-      <Button
-        label="Add to Cart"
-        icon="pi pi-shopping-cart"
-        className="p-button-rounded p-button-sm shadow-2"
-        onClick={() => handleAddToCart(product)}
-        disabled={product.stock === 0}
-      />
-    </div>
-  );
+  const footer = (product) => {
+    const isAdding = addingId === product.id;
+
+    return (
+      <div className="flex flex-wrap justify-content-between align-items-center gap-2">
+        <span className="text-2xl font-bold text-primary">
+          ${Number(product.price).toFixed(2)}
+        </span>
+
+        {product.stock === 0 || !product.isActive ? (
+          <Button
+            label={product.stock === 0 ? "Out of Stock" : "Unavailable"}
+            icon="pi pi-times"
+            className={`p-button-rounded p-button-${product.stock === 0 ? "danger" : "warning"} p-button-small shadow-2`}
+            disabled
+          />
+        ) : (
+          <Button
+            label={isAdding ? "Adding..." : "Add to Cart"}
+            icon="pi pi-shopping-cart"
+            className="p-button-rounded p-button-small shadow-2"
+            onClick={() => handleAddToCart(product)}
+            disabled={isAdding}
+            loading={isAdding}
+          />
+        )}
+      </div>
+    );
+  };
   return (
     <div className="px-2 py-4 md:px-4 lg:px-6">
       <Toast ref={toast} />
@@ -175,7 +204,7 @@ const Products = () => {
             Discover {totalRecords} amazing items selected just for you.
           </p>
         </div>
-        <div className="flex-align-items-center gap-3">
+        <div className="flex align-items-center gap-3">
           <Dropdown
             value={selectedCategory}
             options={categories}
