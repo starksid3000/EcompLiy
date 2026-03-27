@@ -12,6 +12,7 @@ import { Roles } from 'src/common/decorators/roles.decorator';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { GetUser } from 'src/common/decorators/get-user.decorator';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { UpdateRoleDto } from './dto/update-role.dto';
 
 @ApiTags('users')
 @ApiBearerAuth('JWT-auth')
@@ -107,5 +108,22 @@ export class UsersController {
     })
     async deleteUser(@Param('id') id: string): Promise<{message:string}>{
         return await this.usersService.remove(id);
+    }
+
+    //Update user role by admin
+    @Patch(':id/role')
+    @Roles(Role.ADMIN)
+    @ApiOperation({summary: 'Update user role by Admin'})
+    @ApiBody({type: UpdateRoleDto})
+    @ApiResponse({
+        status: 200,
+        description: 'User role updated successfully',
+        type: UserResponseDto,
+    })
+    @ApiResponse({status: 401, description: 'Unauthorized'})
+    @ApiResponse({status: 403, description: 'Forbidden'})
+    @ApiResponse({status: 404, description: 'User not found'})
+    async updateRole(@Param('id') id: string, @Body() updateRoleDto: UpdateRoleDto): Promise<UserResponseDto>{
+        return await this.usersService.updateRole(id, updateRoleDto.role);
     }
 }

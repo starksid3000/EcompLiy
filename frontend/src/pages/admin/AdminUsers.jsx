@@ -8,6 +8,7 @@ import { ConfirmDialog, confirmDialog } from "primereact/confirmdialog";
 import { Toolbar } from "primereact/toolbar";
 import { ProgressSpinner } from "primereact/progressspinner";
 import { InputText } from "primereact/inputtext";
+import { Dropdown } from "primereact/dropdown";
 import api from "../../utils/api";
 
 const AdminUsers = () => {
@@ -15,6 +16,7 @@ const AdminUsers = () => {
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [globalFilter, setGlobalFilter] = useState("");
+  const [firstAdminId, setFirstAdminId] = useState(null);
   const toast = useRef(null);
 
   useEffect(() => {
@@ -43,7 +45,18 @@ const AdminUsers = () => {
     setLoading(true);
     try {
       const res = await api.get("/users");
-      setUsers(res.data || []);
+      const fetchedUsers = res.data || [];
+      setUsers(fetchedUsers);
+
+      const admins = fetchedUsers.filter((u) => u.role === "ADMIN");
+      if (admins.length > 0) {
+        const sortedAdmins = [...admins].sort(
+          (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
+        );
+        setFirstAdminId(sortedAdmins[0].id);
+      } else {
+        setFirstAdminId(null);
+      }
     } catch {
       toast.current?.show({
         severity: "error",
@@ -108,13 +121,46 @@ const AdminUsers = () => {
     </div>
   );
 
-  const roleBody = (u) => (
-    <Tag
-      value={u.role}
-      severity={u.role === "ADMIN" ? "warning" : "info"}
-      className="font-semibold"
-    />
-  );
+  const onRoleChange = async (user, newRole) => {
+    if (user.role === newRole) return;
+    try {
+      await api.patch(`/users/${user.id}/role`, { role: newRole });
+      toast.current?.show({
+        severity: "success",
+        summary: "Updated",
+        detail: `User role updated to ${newRole}`,
+        life: 2000,
+      });
+      fetchUsers();
+    } catch (err) {
+      toast.current?.show({
+        severity: "error",
+        summary: "Error",
+        detail: err?.response?.data?.message || "Could not update user role",
+        life: 3000,
+      });
+    }
+  };
+
+  const roleOptions = [
+    { label: "USER", value: "USER" },
+    { label: "ADMIN", value: "ADMIN" },
+  ];
+
+  const roleBody = (u) => {
+    const isFirstAdmin = u.id === firstAdminId;
+    return (
+      <Dropdown
+        value={u.role}
+        options={roleOptions}
+        onChange={(e) => onRoleChange(u, e.value)}
+        disabled={isFirstAdmin}
+        className="w-full mt-1 mb-1 p-dropdown-sm"
+        tooltip={isFirstAdmin ? "Cannot change role of the first admin" : ""}
+        tooltipOptions={{ position: "top" }}
+      />
+    );
+  };
 
   const dateBody = (u) =>
     new Date(u.createdAt).toLocaleDateString("en-US", {
@@ -196,7 +242,7 @@ const AdminUsers = () => {
         sortOrder={-1}
       >
         <Column body={nameBody} header="User" style={{ minWidth: "220px" }} />
-        <Column body={roleBody} header="Role" style={{ width: "100px" }} />
+        <Column body={roleBody} header="Role" style={{ width: "130px" }} />
         <Column
           body={dateBody}
           header="Joined"

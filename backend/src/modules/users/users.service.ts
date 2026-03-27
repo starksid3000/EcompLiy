@@ -2,11 +2,12 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UserResponseDto } from './dto/user-response.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { Role } from '@prisma/client';
 import * as bcyrpt from 'bcrypt';
 
 @Injectable()
@@ -111,6 +112,41 @@ export class UsersService {
             data: {password: hashNewPassowrd}
         });
         return {message: 'Password updated successfully'};
+    }
+
+    //Update user role
+    async updateRole(userId: string, newRole: Role): Promise<UserResponseDto> {
+        const user = await this.prisma.user.findUnique({
+            where: { id: userId },
+        });
+        if (!user) {
+            throw new NotFoundException('User not found');
+        }
+
+        const firstAdmin = await this.prisma.user.findFirst({
+            where: { role: 'ADMIN' },
+            orderBy: { createdAt: 'asc' },
+        });
+
+        if (firstAdmin && firstAdmin.id === userId) {
+            throw new ForbiddenException('Cannot change the role of the first admin');
+        }
+
+        const updatedUser = await this.prisma.user.update({
+            where: { id: userId },
+            data: { role: newRole },
+            select: {
+                id: true,
+                email: true,
+                firstName: true,
+                lastName: true,
+                role: true,
+                createdAt: true,
+                updatedAt: true,
+                password: false,
+            }
+        });
+        return updatedUser;
     }
 
     //remove user

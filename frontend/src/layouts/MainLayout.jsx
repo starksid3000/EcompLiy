@@ -137,7 +137,7 @@ const MainLayout = () => {
           },
           {
             label: "Manage Users",
-            icon: " pi pi-tags",
+            icon: " pi pi-users",
             command: () => navigate("/admin/users"),
           },
         ],
@@ -200,7 +200,7 @@ const MainLayout = () => {
         />
       </header>
 
-      <main className={`flex-grow-1 ${isAuthPage ? "" : "p-2 md:p-3 lg:p-4"}`}>
+      <main className={`flex-grow-1`}>
         {isAuthPage ? (
           <Outlet />
         ) : (

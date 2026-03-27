@@ -105,7 +105,10 @@ const Products = () => {
         detail: "Please login to add items to your cart",
         life: 3000,
       });
-      return;
+      setTimeout(() => {
+        navigate("/login");
+      }, 1000);
+      return
     }
 
     setAddingId(product.id);

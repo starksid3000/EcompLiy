@@ -41,7 +41,10 @@ const Home = () => {
         detail: "Please login to add items to cart",
         life: 2000,
       });
-      return navigate("/login");
+      setTimeout(() => {
+        navigate("/login");
+      }, 1000);
+      return
     }
     try {
       await addToCart(product.id, 1);
