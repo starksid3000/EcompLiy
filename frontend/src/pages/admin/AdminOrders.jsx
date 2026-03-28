@@ -12,6 +12,7 @@ import { Calendar } from "primereact/calendar";
 import api from "../../utils/api";
 import MobilePaginator from "../../components/MobilePaginator";
 import { Paginator } from "primereact/paginator";
+import { useNavigate } from "react-router-dom";
 
 const statusOptions = [
   { label: "Pending", value: "PENDING" },
@@ -39,7 +40,9 @@ const AdminOrders = () => {
   const [newStatus, setNewStatus] = useState("");
   const [updateDialogVisible, setUpdateDialogVisible] = useState(false);
   const [updating, setUpdating] = useState(false);
+  const [downloading, setDownloading] = useState(false);
   const [dateRange, setDateRange] = useState(null);
+  const navigate = useNavigate();
   const toast = useRef(null);
   //   const params = { page: lazyParams.page, limit: lazyParams.rows };
 
@@ -162,6 +165,49 @@ const AdminOrders = () => {
     />
   );
 
+  const handleDownloadReport = async () => {
+    setDownloading(true);
+    try {
+      const params = {};
+      if (filterStatus && filterStatus !== "All") {
+        params.status = filterStatus;
+      }
+      if (dateRange && dateRange[0]) {
+        params.startDate = dateRange[0].toISOString();
+      }
+      if (dateRange && dateRange[1]) {
+        params.endDate = dateRange[1].toISOString();
+      }
+
+      const response = await api.get('/report/download', {
+        params,
+        responseType: 'blob',
+      });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `orders-report-${new Date().toISOString().split('T')[0]}.xlsx`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      toast.current?.show({
+        severity: "success",
+        summary: "Downloaded",
+        detail: "Report downloaded successfully",
+        life: 3000,
+      });
+    } catch (err) {
+      toast.current?.show({
+        severity: "error",
+        summary: "Error",
+        detail: "Failed to download report",
+        life: 3000,
+      });
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   const amountBody = (order) => (
     <span className="font-bold">${Number(order.total).toFixed(2)}</span>
   );
@@ -241,6 +287,14 @@ const AdminOrders = () => {
             setLazyParams((prev) => ({ ...prev, first: 0, page: 1 }));
           }}
         />
+
+        <Button
+          label="Download Report"
+          icon="pi pi-download"
+          className="p-button-success w-full md:w-auto md:ml-auto"
+          onClick={handleDownloadReport}
+          loading={downloading}
+        />
       </div>
 
       {loading ? (
@@ -266,7 +320,14 @@ const AdminOrders = () => {
             sortable
             sortField="id"
             className="font-mono"
-            body={(order) => order.id.slice(0, 8) + "..."}
+            body={(order) => (
+              <span
+                className="text-primary cursor-pointer hover:underline font-semibold"
+                onClick={() => navigate(`/orders/${order.id}`)}
+              >
+                #{order.id.slice(0, 8)}...
+              </span>
+            )}
           />
           <Column
             body={statusBody}

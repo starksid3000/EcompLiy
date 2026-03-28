@@ -10,6 +10,7 @@ import { Column } from "primereact/column";
 import { Timeline } from "primereact/timeline";
 import { ConfirmDialog, confirmDialog } from "primereact/confirmdialog";
 import api from "../utils/api";
+import useAuthStore from "../store/authStore";
 
 const statusSeverity = {
   PENDING: "warning",
@@ -25,6 +26,7 @@ const OrderDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const toast = useRef(null);
+  const { user } = useAuthStore();
 
   const [order, setOrder] = useState(null);
   const [payment, setPayment] = useState(null);
@@ -39,7 +41,9 @@ const OrderDetail = () => {
     try {
       setLoading(true);
       setError(null);
-      const res = await api.get(`/orders/${id}`);
+      
+      const endpoint = user?.role === 'ADMIN' ? `/orders/admin/${id}` : `/orders/${id}`;
+      const res = await api.get(endpoint);
       const data = res.data?.data || res.data;
       setOrder(data);
 
@@ -293,6 +297,26 @@ const OrderDetail = () => {
 
         {/* Order Summary + Payment + Shipping */}
         <div className="col-12 lg:col-4 p-2">
+          {/* Customer Details */}
+          {user?.role === 'ADMIN' && order.userName && (
+            <div className="surface-card shadow-2 border-round-2xl p-4 mb-3">
+              <h3 className="text-900 font-bold mb-3">
+                <i className="pi pi-user mr-2 text-primary" />
+                Customer Details
+              </h3>
+              <div className="flex flex-column gap-2 text-700">
+                <div className="flex justify-content-between">
+                  <span>Name:</span>
+                  <span className="font-semibold text-900">{order.userName}</span>
+                </div>
+                <div className="flex justify-content-between">
+                  <span>Email:</span>
+                  <span className="font-semibold text-900">{order.userEmail}</span>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Order Summary */}
           <div className="surface-card shadow-2 border-round-2xl p-4 mb-3">
             <h3 className="text-900 font-bold mb-3">
