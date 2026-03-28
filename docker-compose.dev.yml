@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    # Override the default command to use NestJS's hot-reloading dev server
+    command: sh -c "npx prisma migrate deploy && npm run start:dev"
+    volumes:
+      # Map the local backend codebase live into the container
+      - ./backend:/app
+      # Keep the container's isolated node_modules
+      - /app/node_modules
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./backend/.env
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/ecompliy?schema=public
+    depends_on:
+      db:
+        condition: service_started
+
+  frontend:
+    build:
+      context: ./frontend
+      # Stop the build process at the 'builder' stage before Nginx to run Vite natively
+      target: builder
+    # Run Vite, and bind it to 0.0.0.0 so it's accessible from the host
+    command: npm run dev -- --host 0.0.0.0
+    volumes:
+      # Map the local frontend codebase live into the container
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "5173:5173"
+    environment:
+      # Tell Vite proxy to point to the backend docker service instead of localhost
+      - BACKEND_URL=http://backend:3000
+    depends_on:
+      - backend
+
+  db:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ecompliy
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql
+
+volumes:
+  postgres_data:

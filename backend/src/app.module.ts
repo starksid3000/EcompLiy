@@ -14,6 +14,9 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { PaymentsService } from './modules/payments/payments.service';
 import { PaymentsController } from './modules/payments/payments.controller';
 import { CartModule } from './modules/cart/cart.module';
+import { ScheduleModule } from '@nestjs/schedule';
+import { ReportService } from './modules/report/report.service';
+import { ReportController } from './modules/report/report.controller';
 
 
 @Module({
@@ -22,6 +25,7 @@ import { CartModule } from './modules/cart/cart.module';
       isGlobal:true,
       envFilePath:'.env',
     }),
+    ScheduleModule.forRoot(),
     ThrottlerModule.forRoot([
       {
         ttl:60, //seconds
@@ -29,7 +33,7 @@ import { CartModule } from './modules/cart/cart.module';
       },
   ]),
     PrismaModule,AuthModule, UsersModule, CategoryModule, ProductsModule, OrdersModule, CartModule],
-  controllers: [AppController, UsersController, PaymentsController],
-  providers: [AppService, UsersService, PaymentsService],
+  controllers: [AppController, UsersController, PaymentsController, ReportController],
+  providers: [AppService, UsersService, PaymentsService, ReportService],
 })
 export class AppModule {}

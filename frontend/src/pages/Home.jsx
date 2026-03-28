@@ -44,7 +44,7 @@ const Home = () => {
       setTimeout(() => {
         navigate("/login");
       }, 1000);
-      return
+      return;
     }
     try {
       await addToCart(product.id, 1);
