@@ -40,6 +40,29 @@ export class OrdersService {
             }
         })
         const order = await this.prisma.$transaction(async (tx) => {
+            if (latestCart?.id) {
+                const existingPendingOrder = await tx.order.findFirst({
+                    where: {
+                        cartId: latestCart.id,
+                        status: OrderStatus.PENDING,
+                        userId: userId,
+                    },
+                    include: { orderItems: true },
+                });
+
+                if (existingPendingOrder) {
+                    for (const existingItem of existingPendingOrder.orderItems) {
+                        await tx.product.update({
+                            where: { id: existingItem.productId },
+                            data: { stock: { increment: existingItem.quantity } },
+                        });
+                    }
+                    await tx.order.delete({
+                        where: { id: existingPendingOrder.id },
+                    });
+                }
+            }
+
             const newOrder= await tx.order.create({
                 data:{
                     userId,
