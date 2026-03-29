@@ -16,11 +16,13 @@ export class CartService {
 
     //Get or create cart
     async getOrCreateCart(userId:string):Promise<CartResponseDto>{
+        await this.cleanupAbandonedCheckout(userId);
         return this.getOrCreateActiveCart(userId);
     }
 
     //add item to cart 
     async addToCart(userId:string, addToCartDto:AddToCartDto):Promise<CartResponseDto>{
+        await this.cleanupAbandonedCheckout(userId);
         const {productId, quantity} = addToCartDto;
         const product = await this.prisma.product.findUnique({
             where:{id:productId},
@@ -64,6 +66,7 @@ export class CartService {
 
     //Remove Items
     async removeFromCart(userId:string, cartItemId:string):Promise<CartResponseDto>{
+        await this.cleanupAbandonedCheckout(userId);
         const cartItem = await this.prisma.cartItem.findUnique({
             where:{id:cartItemId},
             include:{cart:true},
@@ -78,6 +81,7 @@ export class CartService {
 
     //Clear cart
     async clearCart(userId:string):Promise<CartResponseDto>{
+        await this.cleanupAbandonedCheckout(userId);
         const cart = await this.prisma.cart.findFirst({
             where:{userId, checkedOut:false},
         })
@@ -91,6 +95,7 @@ export class CartService {
 
     //update Cart
     async updateCartItem(userId:string, cartItemId:string, updateCartItemDto:UpdateCartItemDto):Promise<CartResponseDto>{
+        await this.cleanupAbandonedCheckout(userId);
         const {quantity} = updateCartItemDto;
         const cartItem = await this.prisma.cartItem.findUnique({
             where:{id:cartItemId},
@@ -177,5 +182,29 @@ export class CartService {
             createdAt:cart.createdAt,
             updatedAt:cart.updatedAt
          }
+    }
+
+    private async cleanupAbandonedCheckout(userId: string) {
+        const cart = await this.prisma.cart.findFirst({
+            where: { userId, checkedOut: false }
+        });
+        if (!cart) return;
+
+        const pendingOrder = await this.prisma.order.findFirst({
+            where: { cartId: cart.id, status: 'PENDING' },
+            include: { orderItems: true }
+        });
+        
+        if (pendingOrder) {
+            await this.prisma.$transaction(async (tx) => {
+                for (const item of pendingOrder.orderItems) {
+                    await tx.product.update({
+                        where: { id: item.productId },
+                        data: { stock: { increment: item.quantity } }
+                    });
+                }
+                await tx.order.delete({ where: { id: pendingOrder.id } });
+            });
+        }
     }
 }
