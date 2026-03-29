@@ -27,13 +27,22 @@ const Cart = () => {
 
   const handleQuantityChange = async (item, newQty) => {
     if (newQty < 1) return;
-    await updateItem(item.id, newQty);
-    toast.current?.show({
-      severity: "success",
-      summary: "Updated",
-      detail: "Quantity updated",
-      life: 1500,
-    });
+    try {
+      await updateItem(item.id, newQty);
+      toast.current?.show({
+        severity: "success",
+        summary: "Updated",
+        detail: "Quantity updated",
+        life: 1500,
+      });
+    } catch (err) {
+      toast.current?.show({
+        severity: "error",
+        summary: "Update Failed",
+        detail: err.response?.data?.message || "Could not update quantity.",
+        life: 3000,
+      });
+    }
   };
 
   const handleRemove = async (item) => {

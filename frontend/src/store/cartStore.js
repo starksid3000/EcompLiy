@@ -45,8 +45,8 @@ const useCartStore = create((set, get) => ({
         loading: false,
       });
       return true;
-    } catch {
-      return false;
+    } catch (err) {
+      throw err;
     }
   },
   updateItem: async (itemId, quantity) => {
@@ -64,8 +64,8 @@ const useCartStore = create((set, get) => ({
         ),
         loading: false,
       });
-    } catch {
-      //silent
+    } catch (err) {
+      throw err;
     }
   },
   removeItem: async (itemId) => {

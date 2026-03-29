@@ -16,17 +16,7 @@ export class OrdersService {
     constructor (private prisma: PrismaService){}
     async create(userId:string, createdOrderDto: CreateOrderDto): Promise<OrderApiResponseDto<OrderResponseDto>>{
         const {items, shippingAddress} = createdOrderDto;
-        for( const item of items){
-            const product = await this.prisma.product.findUnique({
-                where: { id: item.productId},
-            });
-            if(!product){
-                throw new NotFoundException(`Product with Id ${item.productId} not found`);
-            }
-            if(product.stock < item.quantity){
-                throw new BadRequestException(`Insufficient stock for product ${product.name}. Available: ${product.stock}, Request: ${item.quantity}`)
-            }
-        }
+
         const total = items.reduce(
             (sum, item) => sum + item.price * item.quantity, 0,
         )
@@ -60,6 +50,17 @@ export class OrdersService {
                     await tx.order.delete({
                         where: { id: existingPendingOrder.id },
                     });
+                }
+            }
+            for (const item of items) {
+                const product = await tx.product.findUnique({
+                    where: { id: item.productId },
+                });
+                if (!product) {
+                    throw new NotFoundException(`Product with Id ${item.productId} not found`);
+                }
+                if (product.stock < item.quantity) {
+                    throw new BadRequestException(`Insufficient stock for product ${product.name}. Available: ${product.stock}, Request: ${item.quantity}`);
                 }
             }
 
