@@ -9,6 +9,7 @@ import { ProgressSpinner } from "primereact/progressspinner";
 import { Toast } from "primereact/toast";
 import { ConfirmDialog, confirmDialog } from "primereact/confirmdialog";
 import { Calendar } from "primereact/calendar";
+import { Toolbar } from "primereact/toolbar";
 import api from "../../utils/api";
 import MobilePaginator from "../../components/MobilePaginator";
 import { Paginator } from "primereact/paginator";
@@ -241,18 +242,10 @@ const AdminOrders = () => {
   );
   const filterDropdown = [{ label: "All", value: "All" }, ...statusOptions];
 
-  return (
-    <div className="px-2 py-4 md:px-4">
-      <Toast ref={toast} />
-      <ConfirmDialog />
-
-      <h1 className="text-900 font-bold text-3xl mb-5">
-        <i className="pi pi-list mr-3 text-primary" />
-        Manage Orders
-      </h1>
-      <div className="flex flex-column md:flex-row md:align-items-center md:justify-content-start gap-3 mb-4 flex-wrap">
-        <span className="text-600 font-medium w-full md:w-auto">Filter :</span>
-
+  const leftToolbarTemplate = () => {
+    return (
+      <div className="flex flex-column md:flex-row md:align-items-center gap-3 w-full">
+        <span className="text-600 font-medium">Filter :</span>
         <Dropdown
           value={filterStatus}
           options={filterDropdown}
@@ -264,8 +257,6 @@ const AdminOrders = () => {
           placeholder="All"
           className="w-full md:w-12rem"
         />
-
-        {/* DATE FILTER */}
         <Calendar
           value={dateRange}
           onChange={(e) => {
@@ -277,25 +268,42 @@ const AdminOrders = () => {
           placeholder="Select date range"
           className="w-full md:w-15rem"
         />
-
         <Button
           label="Clear"
-          className="p-button-warning w-full md:w-auto"
+          className="p-button-warning p-button-outlined"
+          icon="pi pi-filter-slash"
           onClick={() => {
             setDateRange(null);
             setFilterStatus(null);
             setLazyParams((prev) => ({ ...prev, first: 0, page: 1 }));
           }}
         />
-
-        <Button
-          label="Download Report"
-          icon="pi pi-download"
-          className="p-button-success w-full md:w-auto md:ml-auto"
-          onClick={handleDownloadReport}
-          loading={downloading}
-        />
       </div>
+    );
+  };
+
+  const rightToolbarTemplate = () => {
+    return (
+      <Button
+        label="Export Excel Report"
+        icon="pi pi-file-excel"
+        className="p-button-help font-semibold"
+        onClick={handleDownloadReport}
+        loading={downloading}
+      />
+    );
+  };
+
+  return (
+    <div className="px-2 py-4 md:px-4">
+      <Toast ref={toast} />
+      <ConfirmDialog />
+
+      <h1 className="text-900 font-bold text-3xl mb-5">
+        <i className="pi pi-list mr-3 text-primary" />
+        Manage Orders
+      </h1>
+      <Toolbar className="mb-4 surface-card shadow-2 border-round-xl" start={leftToolbarTemplate} end={rightToolbarTemplate} />
 
       {loading ? (
         <div className="flex justify-content-center py-8">
@@ -339,7 +347,7 @@ const AdminOrders = () => {
           <Column
             field="shippingAddress"
             header="Shipping"
-            style={{ maxWidth: "200px" }}
+            style={{ maxWidth: "200px", whiteSpace: "normal", wordWrap: "break-word" }}
           />
           <Column
             body={dateBody}

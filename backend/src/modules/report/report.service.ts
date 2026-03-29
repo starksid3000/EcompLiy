@@ -51,32 +51,79 @@ export class ReportService {
     });
 
     const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet('Orders');
+    const worksheet = workbook.addWorksheet('Orders', { views: [{ state: 'frozen', ySplit: 5 }] });
+
+    worksheet.mergeCells('A1:F2');
+    const titleCell = worksheet.getCell('A1');
+    titleCell.value = 'EcompLiy - Daily Orders Report';
+    titleCell.font = { name: 'Arial', size: 16, bold: true, color: { argb: 'FFFFFFFF' } };
+    titleCell.alignment = { vertical: 'middle', horizontal: 'center' };
+    titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1E293B' } }; // Slate-800
+
+    worksheet.mergeCells('A3:F3');
+    const subtitleCell = worksheet.getCell('A3');
+    subtitleCell.value = `Report Generated: ${new Date().toLocaleString()} | Filters applied -> Status: ${status || 'All'}, Dates: ${start.toISOString().split('T')[0]} to ${end.toISOString().split('T')[0]}`;
+    subtitleCell.font = { name: 'Arial', size: 10, italic: true, color: { argb: 'FF475569' } };
+    subtitleCell.alignment = { vertical: 'middle', horizontal: 'center' };
 
     worksheet.columns = [
-      { header: 'Order ID', key: 'id', width: 35 },
-      { header: 'Customer', key: 'customer', width: 25 },
-      { header: 'Total Amount', key: 'total', width: 15 },
-      { header: 'Order Status', key: 'status', width: 15 },
-      { header: 'Items', key: 'items', width: 60 },
-      { header: 'Date', key: 'date', width: 25 },
+      { key: 'id', width: 35 },
+      { key: 'customer', width: 25 },
+      { key: 'total', width: 15 },
+      { key: 'status', width: 15 },
+      { key: 'items', width: 60 },
+      { key: 'date', width: 25 },
     ];
 
+    const headerRow = worksheet.getRow(5);
+    headerRow.values = ['Order ID', 'Customer', 'Total Amount', 'Order Status', 'Items', 'Date'];
+    headerRow.height = 25;
+    headerRow.eachCell((cell) => {
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF334155' } };
+      cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+      cell.alignment = { vertical: 'middle', horizontal: 'center' };
+      cell.border = { top: { style: 'thin' }, bottom: { style: 'thick' }, left: { style: 'thin' }, right: { style: 'thin' } };
+    });
+
+    let rowIndex = 6;
     orders.forEach(order => {
       const itemsList = order.orderItems
         .map(item => `• ${item.quantity}x ${item.product.name}`)
         .join('\n');
 
-      const row = worksheet.addRow({
-        id: order.id,
-        customer: `${order.user?.firstName || ''} ${order.user?.lastName || ''}`.trim() || 'Guest',
-        total: order.totalAmount,
-        status: order?.status,
-        items: itemsList,
-        date: order.createdAt,
-      });
+      const row = worksheet.getRow(rowIndex);
+      row.values = [
+        order.id,
+        `${order.user?.firstName || ''} ${order.user?.lastName || ''}`.trim() || 'Guest',
+        Number(order.totalAmount),
+        order?.status,
+        itemsList,
+        new Date(order.createdAt).toLocaleString()
+      ];
 
-      row.getCell('items').alignment = { wrapText: true };
+      const isAlternate = rowIndex % 2 === 0;
+
+      row.eachCell((cell, colNum) => {
+        cell.alignment = { 
+            vertical: 'middle', 
+            horizontal: colNum === 3 || colNum === 6 ? 'right' : colNum === 4 ? 'center' : 'left', 
+            wrapText: colNum === 5 
+        };
+        cell.border = { 
+            top: { style: 'thin', color: { argb: 'FFCBD5E1' } }, 
+            bottom: { style: 'thin', color: { argb: 'FFCBD5E1' } }, 
+            left: { style: 'thin', color: { argb: 'FFCBD5E1' } }, 
+            right: { style: 'thin', color: { argb: 'FFCBD5E1' } } 
+        };
+        if (isAlternate) {
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } };
+        }
+        if (colNum === 3) {
+            cell.numFmt = '"$"#,##0.00';
+            cell.font = { bold: true, color: { argb: 'FF0F172A' } };
+        }
+      });
+      rowIndex++;
     });
 
     const dirPath = 'reports';
