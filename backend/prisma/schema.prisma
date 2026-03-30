@@ -37,11 +37,13 @@ enum PaymentStatus {
 model User {
   id           String    @id @default(uuid())
   email        String    @unique
-  password     String
+  password     String?
   firstName    String?
   lastName     String?
   role         Role      @default(USER)
   refreshToken String?
+  provider     String    @default("local")
+  providerId   String?
   //relation
   orders       Order[]
   carts        Cart[]
@@ -121,8 +123,8 @@ model OrderItem {
 
 //CartItem
 model CartItem {
-  id        String  @id @default(uuid())
-  quantity  Int     @default(1)
+  id       String @id @default(uuid())
+  quantity Int    @default(1)
 
   productId String
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
@@ -172,7 +174,7 @@ model Cart {
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  orders  Order[]
+  orders     Order[]
   checkedOut Boolean @default(false)
 
   cartItems CartItem[]
@@ -207,4 +209,3 @@ model Payment {
   @@index([transactionId])
   @@map("payments")
 }
-

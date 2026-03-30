@@ -1,7 +1,10 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable prettier/prettier */
-import { Body, Controller, HttpCode, HttpStatus, Post, UseGuards} from '@nestjs/common';
+import { Body, Controller, HttpCode, HttpStatus, Post, UseGuards, Get, Req, Res } from '@nestjs/common';
+import { GoogleAuthGuard } from 'src/common/guards/google-auth.guard';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { AuthResponseDto } from './dto/auth-response.dto';
@@ -118,5 +121,22 @@ export class AuthController {
     @HttpCode(HttpStatus.OK)
     async login(@Body() loginDto: LoginDto): Promise<AuthResponseDto>{
         return await this.authService.login(loginDto);
+    }
+    @Get('google')
+    @UseGuards(GoogleAuthGuard)
+    @ApiOperation({ summary: 'Initiate Google OAuth login' })
+    async googleAuth(@Req() req: any) {
+        // Initiates the Google OAuth2 login flow
+    }
+
+    @Get('google/callback')
+    @UseGuards(GoogleAuthGuard)
+    @ApiOperation({ summary: 'Google OAuth callback' })
+    async googleAuthRedirect(@Req() req: any, @Res() res: any) {
+        const response = await this.authService.googleLogin(req);
+        // We fallback to localhost:5173 for local dev frontend URL
+        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+        const redirectUrl = `${frontendUrl}/auth/callback?accessToken=${response.accessToken}&refreshToken=${response.refreshToken}&userId=${response.user.id}&firstName=${encodeURIComponent(response.user.firstName || '')}`;
+        return res.redirect(redirectUrl);
     }
 }

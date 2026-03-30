@@ -3,6 +3,7 @@ import MainLayout from "./layouts/MainLayout";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import AuthCallback from "./pages/AuthCallback";
 import Products from "./pages/Products";
 import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
@@ -26,6 +27,7 @@ function App() {
           <Route index element={<Home />} />
           <Route path="login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="/products" element={<Products />} />
           <Route path="products/:id" element={<ProductDetail />} />
           {/* Authenticated Users route */}
@@ -34,15 +36,15 @@ function App() {
           <Route path="orders/:id" element={<ProtectedRoute><OrderDetail /></ProtectedRoute>} />
           <Route path="profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           <Route path="checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
-         {/* Authenticated Admin route */}
-          <Route path="admin/dashboard" element={<AdminRoute><AdminDashboard /></AdminRoute>}/>
-          <Route path="admin/products" element={<AdminRoute><AdminProducts /></AdminRoute>}/>
-          <Route path="admin/orders" element={<AdminRoute><AdminOrders /></AdminRoute>}/>
-          <Route path="admin/categories" element={<AdminRoute><AdminCategories /></AdminRoute>}/>
+          {/* Authenticated Admin route */}
+          <Route path="admin/dashboard" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+          <Route path="admin/products" element={<AdminRoute><AdminProducts /></AdminRoute>} />
+          <Route path="admin/orders" element={<AdminRoute><AdminOrders /></AdminRoute>} />
+          <Route path="admin/categories" element={<AdminRoute><AdminCategories /></AdminRoute>} />
           <Route path="admin/users" element={<AdminRoute><AdminUsers /></AdminRoute>} />
           {/* 404 */}
-          <Route path="*" element={<NotFound />}/>
-          </Route>
+          <Route path="*" element={<NotFound />} />
+        </Route>
       </Routes>
     </Router>
   );

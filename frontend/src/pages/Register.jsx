@@ -161,6 +161,21 @@ const Register = () => {
                         loading={loading}
                         disabled={loading}
                     />
+
+                    <div className="flex align-items-center pt-2">
+                        <div className="border-top-1 border-300 flex-grow-1"></div>
+                        <span className="px-3 text-600 text-sm">Or</span>
+                        <div className="border-top-1 border-300 flex-grow-1"></div>
+                    </div>
+
+                    <Button
+                        label="Continue with Google"
+                        icon="pi pi-google"
+                        className="w-full p-3 text-lg font-semibold border-round-xl surface-200 text-800 border-none hover:surface-300 transition-colors transition-duration-300"
+                        type="button"
+                        onClick={() => window.location.href = 'http://localhost:3000/api/v1/auth/google'}
+                        disabled={loading}
+                    />
                 </form>
 
                 <div className="mt-5 text-center text-sm">
