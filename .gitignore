@@ -166,3 +166,5 @@ out/
 Thumbs.db
 DockerCommands.md
 *.xlsx
+PrismaCommands.md
+GoogleAuthCredentials.md

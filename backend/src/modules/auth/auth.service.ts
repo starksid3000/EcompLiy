@@ -7,7 +7,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { RegisterDto } from './dto/register.dto';
 import { AuthResponseDto } from './dto/auth-response.dto';
 import * as bcrypt from 'bcrypt';
-import {JwtService} from '@nestjs/jwt';
+import { JwtService } from '@nestjs/jwt';
 import { randomBytes } from 'crypto';
 import { LoginDto } from './dto/login.dto';
 import { ConfigService } from '@nestjs/config';
@@ -18,9 +18,9 @@ export class AuthService {
 
   constructor(
     private prisma: PrismaService,
-    private jwtService: JwtService, 
+    private jwtService: JwtService,
     private configService: ConfigService,
-    ) {}
+  ) { }
 
   //register a new user
   async register(registerDto: RegisterDto): Promise<AuthResponseDto> {
@@ -36,18 +36,18 @@ export class AuthService {
       const hashedPassword = await bcrypt.hash(password, this.SALT_ROUNDS);
       const user = await this.prisma.user.create({
         data: {
-            email, 
-            password: hashedPassword,
-            firstName,
-            lastName
+          email,
+          password: hashedPassword,
+          firstName,
+          lastName
         },
         select: {
-            id: true,
-            email: true,
-            firstName: true,
-            lastName: true,
-            role: true,
-            password: false
+          id: true,
+          email: true,
+          firstName: true,
+          lastName: true,
+          role: true,
+          password: false
         }
       })
 
@@ -58,49 +58,49 @@ export class AuthService {
         ...tokens,
         user,
       }
-    } catch (error) {  
+    } catch (error) {
       console.error("Error during user registration: ", error);
       throw new InternalServerErrorException('Registratoin failed')
     }
   }
 
   //Generate access and refresh tokens
-  private async generateTokens(userId: string, email: string): Promise<{accessToken: string; refreshToken: string}>{
+  private async generateTokens(userId: string, email: string): Promise<{ accessToken: string; refreshToken: string }> {
     // Implementation for token generation
-    const payload = { sub: userId, email}
-    const refreshId = randomBytes(16).toString('hex'); 
+    const payload = { sub: userId, email }
+    const refreshId = randomBytes(16).toString('hex');
     const [accessToken, refreshToken] = await Promise.all([
-        this.jwtService.signAsync(payload, {expiresIn: '15m'}),
-        this.jwtService.signAsync({...payload, refreshId}, {
-            secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
-            expiresIn:'7d'
-        }),
-    ])  
-     
+      this.jwtService.signAsync(payload, { expiresIn: '15m' }),
+      this.jwtService.signAsync({ ...payload, refreshId }, {
+        secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
+        expiresIn: '7d'
+      }),
+    ])
+
     return { accessToken, refreshToken };
   }
-  
-  async updateRefreshToken(userId: string, refreshToken: string): Promise<void>{
+
+  async updateRefreshToken(userId: string, refreshToken: string): Promise<void> {
     const hash = await bcrypt.hash(refreshToken, this.SALT_ROUNDS);
     await this.prisma.user.update({
-        where: { id: userId },
-        data: { refreshToken: hash }
+      where: { id: userId },
+      data: { refreshToken: hash }
     });
   }
 
   //Refresh access token
-  async refreshTokens(userId : string) : Promise<AuthResponseDto>{
+  async refreshTokens(userId: string): Promise<AuthResponseDto> {
     const user = await this.prisma.user.findUnique({
-      where: { id : userId},
-      select:{
+      where: { id: userId },
+      select: {
         id: true,
         email: true,
         firstName: true,
         lastName: true,
-        role: true  
+        role: true
       }
     })
-    if(!user){
+    if (!user) {
       throw new UnauthorizedException("User Not found");
     }
 
@@ -114,29 +114,29 @@ export class AuthService {
   }
 
   //logout user and invalidate refresh token
-  async logout(userId: string) : Promise<void>{
+  async logout(userId: string): Promise<void> {
     await this.prisma.user.update({
-      where: {id: userId},
-      data: {refreshToken: null},
+      where: { id: userId },
+      data: { refreshToken: null },
     })
   }
 
   //login
-  async login(loginDto: LoginDto): Promise<AuthResponseDto>{
+  async login(loginDto: LoginDto): Promise<AuthResponseDto> {
     const { email, password } = loginDto;
-     
+
     const user = await this.prisma.user.findUnique({
       where: { email },
     })
 
-    if(!user || !(await bcrypt.compare(password, user.password))){
+    if (!user || !(await bcrypt.compare(password, user.password))) {
       throw new UnauthorizedException('Invalid email or password');
     }
 
     const tokens = await this.generateTokens(user.id, user.email)
     await this.updateRefreshToken(user.id, tokens.refreshToken)
 
-    return{
+    return {
       ...tokens,
       user: {
         id: user.id,
@@ -146,5 +146,49 @@ export class AuthService {
         role: user.role,
       }
     }
+  }
+  //google login
+  async googleLogin(req: any): Promise<AuthResponseDto> {
+    if (!req.user) {
+      throw new UnauthorizedException('No user from google');
+    }
+    const { email, firstName, lastName, providerId } = req.user;
+
+    let user = await this.prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (user) {
+      if (!user.providerId) {
+        user = await this.prisma.user.update({
+          where: { email },
+          data: { provider: 'google', providerId }
+        });
+      }
+    } else {
+      user = await this.prisma.user.create({
+        data: {
+          email,
+          firstName,
+          lastName,
+          provider: 'google',
+          providerId,
+        }
+      });
+    }
+
+    const tokens = await this.generateTokens(user.id, user.email);
+    await this.updateRefreshToken(user.id, tokens.refreshToken);
+
+    return {
+      ...tokens,
+      user: {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role,
+      } as any
+    };
   }
 }
