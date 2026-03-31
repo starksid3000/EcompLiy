@@ -17,22 +17,24 @@ import { CartModule } from './modules/cart/cart.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ReportService } from './modules/report/report.service';
 import { ReportController } from './modules/report/report.controller';
+import { StorageModule } from './modules/storage/storage.module';
 
 
 @Module({
   imports: [
     ConfigModule.forRoot({
-      isGlobal:true,
-      envFilePath:'.env',
+      isGlobal: true,
+      envFilePath: '.env',
     }),
     ScheduleModule.forRoot(),
     ThrottlerModule.forRoot([
       {
-        ttl:60, //seconds
-        limit: 10, // 10 requests per 60 seconds
+        ttl: 60,
+        limit: 10,
       },
-  ]),
-    PrismaModule,AuthModule, UsersModule, CategoryModule, ProductsModule, OrdersModule, CartModule],
+    ]),
+    PrismaModule, AuthModule, UsersModule, CategoryModule, ProductsModule, OrdersModule, CartModule, StorageModule,
+  ],
   controllers: [AppController, UsersController, PaymentsController, ReportController],
   providers: [AppService, UsersService, PaymentsService, ReportService],
 })

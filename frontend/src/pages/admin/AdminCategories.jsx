@@ -28,7 +28,9 @@ const AdminCategories = () => {
   const [category, setCategory] = useState(emptyCategory);
   const [editMode, setEditMode] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const toast = useRef(null);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     fetchCategories();
@@ -48,6 +50,27 @@ const AdminCategories = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingImage(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const res = await api.post('/storage/upload?folder=categories', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      const url = res.data?.url;
+      setCategory((prev) => ({ ...prev, imageUrl: url }));
+      toast.current?.show({ severity: 'success', summary: 'Uploaded', detail: 'Image uploaded successfully', life: 2000 });
+    } catch (err) {
+      toast.current?.show({ severity: 'error', summary: 'Upload Failed', detail: err.response?.data?.message || 'Failed to upload image', life: 3000 });
+    } finally {
+      setUploadingImage(false);
+      e.target.value = '';
     }
   };
 
@@ -393,25 +416,44 @@ const AdminCategories = () => {
           </div>
 
           <div>
-            <label
-              htmlFor="cat-img"
-              className="font-semibold text-900 block mb-2"
-            >
-              Image URL
+            <label htmlFor="cat-img" className="font-semibold text-900 block mb-2">
+              Category Image
             </label>
-            <InputText
-              id="cat-img"
-              value={category.imageUrl}
-              onChange={(e) => onInputChange("imageUrl", e.target.value)}
-              placeholder="https://..."
-            />
+
+            {/* Live preview */}
             {category.imageUrl && (
-              <img
-                src={category.imageUrl}
-                alt="Preview"
-                className="mt-2 border-round shadow-1"
-                style={{ maxHeight: "120px", objectFit: "cover" }}
-              />
+              <div className="mb-3 text-center">
+                <img
+                  src={category.imageUrl}
+                  alt="Preview"
+                  className="border-round shadow-2"
+                  style={{ maxHeight: '150px', maxWidth: '100%', objectFit: 'cover' }}
+                />
+              </div>
+            )}
+
+            {/* Hidden file input */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              style={{ display: 'none' }}
+              onChange={handleImageUpload}
+            />
+
+            {/* Styled upload button */}
+            <Button
+              type="button"
+              label={uploadingImage ? 'Uploading...' : category.imageUrl ? 'Change Image' : 'Upload Image'}
+              icon={uploadingImage ? 'pi pi-spin pi-spinner' : 'pi pi-upload'}
+              className="p-button-outlined w-full"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploadingImage}
+            />
+
+            {/* URL reference */}
+            {category.imageUrl && (
+              <small className="text-500 block mt-2" style={{ wordBreak: 'break-all' }}>{category.imageUrl}</small>
             )}
           </div>
 
