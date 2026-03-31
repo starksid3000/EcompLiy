@@ -12,6 +12,10 @@ services:
     environment:
       # Override the DB URL from .env to connect to the docker postgres service
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/ecompliy?schema=public
+      # Frontend URL for OAuth redirect (Docker frontend runs on port 8080)
+      - FRONTEND_URL=http://localhost:8080
+      # Google OAuth callback must go through Nginx proxy, not directly to backend
+      - GOOGLE_CALLBACK_URL=http://localhost:8080/api/v1/auth/google/callback
     depends_on:
       db:
         condition: service_started
