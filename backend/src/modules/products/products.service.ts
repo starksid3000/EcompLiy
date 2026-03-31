@@ -55,22 +55,49 @@ export class ProductsService {
   }> {
     const { category, isActive, search, page = 1, limit = 10 } = queryDto;
 
-    const where: Prisma.ProductWhereInput = {};
-
-    if (category) {
-      where.categoryId = category;
-    }
-
-    if (isActive !== undefined) {
-      where.isActive = isActive;
-    }
-
     if (search) {
-      where.OR = [
-        { name: { contains: search, mode: 'insensitive' } },
-        { description: { contains: search, mode: 'insensitive' } },
-      ];
+      const formattedSearch = search.trim();
+      
+      const categoryFilter = category ? Prisma.sql`AND p."categoryId" = ${category}` : Prisma.empty;
+      const activeFilter = isActive !== undefined ? Prisma.sql`AND p."isActive" = ${isActive}` : Prisma.empty;
+
+      const rawProducts = await this.prisma.$queryRaw<any[]>`
+        SELECT p.*, c.name as category_name
+        FROM products p
+        JOIN category c ON p."categoryId" = c.id
+        WHERE 
+            (to_tsvector('english', p.name || ' ' || coalesce(p.description, '')) @@ plainto_tsquery('english', ${formattedSearch})
+             OR similarity(p.name, ${formattedSearch}) > 0.15
+             OR similarity(coalesce(p.description, ''), ${formattedSearch}) > 0.15)
+            ${categoryFilter}
+            ${activeFilter}
+        ORDER BY 
+            ts_rank(to_tsvector('english', p.name || ' ' || coalesce(p.description, '')), plainto_tsquery('english', ${formattedSearch})) + 
+            similarity(p.name, ${formattedSearch}) DESC
+      `;
+
+      const total = rawProducts.length;
+      const paginated = rawProducts.slice((page - 1) * limit, page * limit);
+
+      return {
+        data: paginated.map((p) => ({
+          ...p,
+          price: Number(p.price),
+          category: p.category_name,
+        })),
+        meta: {
+          total,
+          page,
+          limit,
+          totalPages: Math.ceil(total / limit),
+        },
+      };
     }
+
+    // Standard non-search pipeline
+    const where: Prisma.ProductWhereInput = {};
+    if (category) where.categoryId = category;
+    if (isActive !== undefined) where.isActive = isActive;
 
     const total = await this.prisma.product.count({ where });
 
