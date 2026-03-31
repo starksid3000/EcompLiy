@@ -36,9 +36,11 @@ const AdminProducts = () => {
   const [product, setProduct] = useState(emptyProduct);
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [totalRecords, setTotalRecords] = useState(0);
   const [lazyParams, setLazyParams] = useState({ first: 0, rows: 10, page: 1 });
   const toast = useRef(null);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     fetchCategories();
@@ -85,6 +87,27 @@ const AdminProducts = () => {
       rows: e.rows,
       page: Math.floor(e.first / e.rows) + 1,
     });
+  };
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingImage(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const res = await api.post('/storage/upload?folder=products', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      const url = res.data?.url;
+      setProduct((prev) => ({ ...prev, imageUrl: url }));
+      toast.current?.show({ severity: 'success', summary: 'Uploaded', detail: 'Image uploaded successfully', life: 2000 });
+    } catch (err) {
+      toast.current?.show({ severity: 'error', summary: 'Upload Failed', detail: err.response?.data?.message || 'Failed to upload image', life: 3000 });
+    } finally {
+      setUploadingImage(false);
+      e.target.value = '';
+    }
   };
 
   const openNew = () => {
@@ -393,13 +416,43 @@ const AdminProducts = () => {
             </div>
           </div>
           <div className="field">
-            <label className="font-semibold mb-2 block">Image URL</label>
-            <InputText
-              value={product.imageUrl}
-              onChange={(e) =>
-                setProduct({ ...product, imageUrl: e.target.value })
-              }
+            <label className="font-semibold mb-2 block">Product Image</label>
+
+            {/* Image preview */}
+            {product.imageUrl && (
+              <div className="mb-3 text-center">
+                <img
+                  src={product.imageUrl}
+                  alt="Preview"
+                  className="border-round shadow-2"
+                  style={{ maxHeight: '160px', maxWidth: '100%', objectFit: 'cover' }}
+                />
+              </div>
+            )}
+
+            {/* Hidden real file input */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              style={{ display: 'none' }}
+              onChange={handleImageUpload}
             />
+
+            {/* Styled upload button */}
+            <Button
+              type="button"
+              label={uploadingImage ? 'Uploading...' : product.imageUrl ? 'Change Image' : 'Upload Image'}
+              icon={uploadingImage ? 'pi pi-spin pi-spinner' : 'pi pi-upload'}
+              className="p-button-outlined w-full"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploadingImage}
+            />
+
+            {/* Show current URL as small text for reference */}
+            {product.imageUrl && (
+              <small className="text-500 block mt-2" style={{ wordBreak: 'break-all' }}>{product.imageUrl}</small>
+            )}
           </div>
           <div className="flex align-items-center gap-3">
             <label className="font-semibold">Active</label>
