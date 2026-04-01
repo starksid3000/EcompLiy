@@ -67,4 +67,16 @@ export class ProductResponseDto {
     description: 'last update timestamp',
   })
   updatedAt: Date;
+
+  @ApiProperty({
+    description : "Gallery images for the product",
+    type:"array",
+    required:false
+  })
+  images?: {
+    id: string;
+    url:string;
+    altText: string | null;
+    position: number;
+  }[];
 }

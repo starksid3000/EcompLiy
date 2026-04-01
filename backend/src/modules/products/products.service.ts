@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import {
@@ -8,7 +9,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateProductDto } from './dto/create-product.dto';
-import { Category, Prisma, Product } from '@prisma/client';
+import { Category, Prisma, Product, ProductImage } from '@prisma/client';
 import { ProductResponseDto } from './dto/product-response.dto';
 import { QueryProductDto } from './dto/query-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
@@ -37,12 +38,12 @@ export class ProductsService {
       },
       include: {
         category: true,
+        images: { orderBy: { position: 'asc' } },
       },
     });
 
     return this.formatProduct(product);
   }
-
   // Get all product
   async findAll(queryDto: QueryProductDto): Promise<{
     data: ProductResponseDto[];
@@ -57,7 +58,7 @@ export class ProductsService {
 
     if (search) {
       const formattedSearch = search.trim();
-      
+
       const categoryFilter = category ? Prisma.sql`AND p."categoryId" = ${category}` : Prisma.empty;
       const activeFilter = isActive !== undefined ? Prisma.sql`AND p."isActive" = ${isActive}` : Prisma.empty;
 
@@ -128,6 +129,7 @@ export class ProductsService {
       where: { id },
       include: {
         category: true,
+        images: { orderBy: { position: 'asc' } },
       },
     });
     if (!product) {
@@ -172,6 +174,7 @@ export class ProductsService {
       data: updateData,
       include: {
         category: true,
+        images: { orderBy: { position: 'asc' } },
       },
     });
 
@@ -198,6 +201,7 @@ export class ProductsService {
       data: { stock: newStock },
       include: {
         category: true,
+        images: { orderBy: { position: 'asc' } },
       },
     });
 
@@ -232,12 +236,18 @@ export class ProductsService {
   }
 
   private formatProduct(
-    product: Product & { category: Category },
+    product: Product & { category: Category; images?: ProductImage[] },
   ): ProductResponseDto {
     return {
       ...product,
       price: Number(product.price),
       category: product.category.name,
+      images: (product.images || []).map((img) => ({
+        id: img.id,
+        url: img.url,
+        altText: img.altText,
+        position: img.position,
+      })),
     };
   }
 }
