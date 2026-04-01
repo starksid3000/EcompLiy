@@ -17,9 +17,12 @@ const Home = () => {
 
   const [featuredProducts, setFeaturedProducts] = useState([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
+  const [categories, setCategories] = useState([]);
+  const [loadingCategories, setLoadingCategories] = useState(true);
 
   useEffect(() => {
     fetchFeatured();
+    fetchCategories();
   }, []);
 
   const fetchFeatured = async () => {
@@ -30,6 +33,17 @@ const Home = () => {
       /* silent */
     } finally {
       setLoadingProducts(false);
+    }
+  };
+
+  const fetchCategories = async () => {
+    try {
+      const res = await api.get("/category", { params: { limit: 20 } });
+      setCategories(res.data?.data || []);
+    } catch {
+      /* silent */
+    } finally {
+      setLoadingCategories(false);
     }
   };
 
@@ -128,6 +142,45 @@ const Home = () => {
               />
             )}
           </div>
+        </div>
+      </div>
+
+      {/* ──── Shop by Category ──── */}
+      <div className="mb-6">
+        <h2 className="text-900 font-bold text-3xl m-0 mb-4">Shop by Category</h2>
+        <div 
+          className="flex gap-4 overflow-x-auto pb-4" 
+          style={{ scrollbarWidth: 'thin', WebkitOverflowScrolling: 'touch' }}
+        >
+          {loadingCategories
+            ? Array.from({ length: 8 }).map((_, i) => (
+                <div key={i} className="flex-shrink-0 flex flex-column align-items-center gap-2" style={{ width: '120px' }}>
+                  <Skeleton shape="circle" size="100px" />
+                  <Skeleton width="80%" className="mt-2" />
+                </div>
+              ))
+            : categories.map((cat) => (
+                <div 
+                  key={cat.id} 
+                  className="flex-shrink-0 flex flex-column align-items-center gap-2 cursor-pointer transition-transform hover:-translate-y-1 transition-duration-200"
+                  style={{ width: '120px' }}
+                  onClick={() => navigate(`/products?category=${cat.id}`)}
+                >
+                  <div 
+                    className="border-circle overflow-hidden shadow-2 flex align-items-center justify-content-center surface-200"
+                    style={{ width: '100px', height: '100px', border: '3px solid white' }}
+                  >
+                    {cat.imageUrl ? (
+                      <img src={cat.imageUrl} alt={cat.name} className="w-full h-full" style={{ objectFit: 'cover' }} />
+                    ) : (
+                      <i className="pi pi-th-large text-4xl text-500" />
+                    )}
+                  </div>
+                  <span className="font-semibold text-700 text-center w-full white-space-nowrap overflow-hidden text-overflow-ellipsis">
+                    {cat.name}
+                  </span>
+                </div>
+              ))}
         </div>
       </div>
 
