@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import { CacheInterceptor, CacheTTL } from '@nestjs/cache-manager';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post, Query, UseGuards, UseInterceptors } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CategoryService } from './category.service';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
@@ -37,6 +38,8 @@ export class CategoryController {
 
     //get all categories
     @Get()
+    @UseInterceptors(CacheInterceptor)
+    @CacheTTL(60000)
     @ApiOperation({ summary:'Get all Categories'})
     @ApiResponse({
         status:200,
@@ -66,6 +69,8 @@ export class CategoryController {
 
     //Get category by Id
     @Get(":id")
+    @UseInterceptors(CacheInterceptor)
+    @CacheTTL(60000)
     @ApiOperation({summary: 'Get Category by Id'})
     @ApiResponse({
         status: 200,
@@ -82,6 +87,8 @@ export class CategoryController {
 
     //Get category by slug
     @Get('slug/:slug')
+    @UseInterceptors(CacheInterceptor)
+    @CacheTTL(60000)
     @ApiOperation({summary: 'Get Category by slug'})
     @ApiResponse({
         status: 200,
