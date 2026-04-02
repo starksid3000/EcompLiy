@@ -46,10 +46,11 @@ const ZoomImage = ({ src, alt }) => {
       {/* Main Image */}
       <div
         ref={containerRef}
-        className="relative overflow-hidden border-round-2xl shadow-2"
+        className="relative overflow-hidden border-round-2xl shadow-2 flex align-items-center justify-content-center"
         style={{
           height: "420px",
           cursor: "zoom-in",
+          backgroundColor: "#f8f9fa",
         }}
         onMouseEnter={() => setShowZoom(true)}
         onMouseLeave={() => setShowZoom(false)}
@@ -60,7 +61,7 @@ const ZoomImage = ({ src, alt }) => {
           alt={alt}
           className="w-full h-full"
           style={{
-            objectFit: "cover",
+            objectFit: "contain",
             transition: "transform 0.3s ease",
           }}
           draggable={false}
@@ -110,6 +111,52 @@ const ZoomImage = ({ src, alt }) => {
       <div className="md:hidden text-center mt-2 text-500 text-xs">
         Tap image to view
       </div>
+    </div>
+  );
+};
+// ── Product Image Gallery ──────────────────────────────────────────────────
+// Shows thumbnail strip below the main image. Clicking a thumbnail swaps it into the main viewer.
+const ProductGallery = ({ images, primaryImageUrl, productName }) => {
+  // Combine primary image AND gallery images into one array
+  const allImages = [];
+  if (primaryImageUrl) allImages.push(primaryImageUrl);
+  if (images && images.length > 0) allImages.push(...images.map((img) => img.url));
+  if (allImages.length === 0) allImages.push("https://primefaces.org/cdn/primereact/images/usercard.png");
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  return (
+    <div>
+      <ZoomImage src={allImages[selectedIndex]} alt={productName} />
+      {/* Thumbnail strip — only shown if there are multiple images */}
+      {allImages.length > 1 && (
+        <div className="flex gap-2 mt-3 overflow-x-auto pb-1" style={{ scrollbarWidth: 'thin' }}>
+          {allImages.map((url, idx) => (
+            <div
+              key={idx}
+              className="flex-shrink-0 cursor-pointer border-round overflow-hidden shadow-1 transition-all transition-duration-200"
+              style={{
+                width: "64px",
+                height: "64px",
+                border: idx === selectedIndex ? "2px solid var(--primary-color)" : "2px solid transparent",
+                opacity: idx === selectedIndex ? 1 : 0.7,
+              }}
+              onClick={() => setSelectedIndex(idx)}
+              onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")}
+              onMouseLeave={(e) => { if (idx !== selectedIndex) e.currentTarget.style.opacity = "0.7"; }}
+            >
+              <img
+                src={url}
+                alt={`${productName} ${idx + 1}`}
+                className="w-full h-full"
+                style={{ objectFit: "cover" }}
+              />
+            </div>
+          ))}
+        </div>
+      )}
+      <p className="text-400 text-xs text-center mt-2 hidden md:block">
+        <i className="pi pi-search-plus mr-1" />
+        Hover to zoom
+      </p>
     </div>
   );
 };
@@ -202,11 +249,9 @@ const ProductDetail = () => {
     return { label: "In Stock", severity: "success", icon: "pi pi-check-circle" };
   };
   const stock = stockStatus(product.stock);
-
   return (
     <div className="px-2 py-4 md:px-4 lg:px-6">
       <Toast ref={toast} />
-
       {/* Breadcrumb */}
       <div className="flex align-items-center gap-2 mb-4 text-500 flex-wrap">
         <span className="cursor-pointer hover:text-primary" onClick={() => navigate("/")}>Home</span>
@@ -215,27 +260,22 @@ const ProductDetail = () => {
         <i className="pi pi-chevron-right text-xs" />
         <span className="text-900 font-medium">{product.name}</span>
       </div>
-
       {/* Product Detail */}
       <div className="grid">
         {/* ── Image with Amazon-style zoom ─────────────────────────────────── */}
+        {/* ── Image Gallery ─────────────────────────────────────────────── */}
         <div className="col-12 md:col-6 p-3" style={{ position: "relative" }}>
-          <ZoomImage
-            src={product.imageUrl || "https://primefaces.org/cdn/primereact/images/usercard.png"}
-            alt={product.name}
+          <ProductGallery
+            images={product.images || []}
+            primaryImageUrl={product.imageUrl}
+            productName={product.name}
           />
-          <p className="text-400 text-xs text-center mt-2 hidden md:block">
-            <i className="pi pi-search-plus mr-1" />
-            Hover to zoom
-          </p>
         </div>
-
         {/* ── Info Panel ────────────────────────────────────────────────────── */}
         <div className="col-12 md:col-6 p-3">
           <div className="surface-card shadow-2 border-round-2xl p-4 md:p-5 h-full">
             <Tag value={product.category || "Uncategorized"} severity="info" className="mb-3" />
             <h1 className="text-900 font-bold text-2xl md:text-4xl m-0 mb-3 line-height-2">{product.name}</h1>
-
             {/* Price */}
             <div className="flex align-items-center gap-3 mb-4">
               <span
@@ -245,22 +285,17 @@ const ProductDetail = () => {
                 ${Number(product.price).toFixed(2)}
               </span>
             </div>
-
             {/* Stock */}
             <div className="flex align-items-center gap-2 mb-4">
               <i className={`${stock.icon} text-${stock.severity === "success" ? "green" : stock.severity === "warning" ? "orange" : "red"}-500`} />
               <Tag value={stock.label} severity={stock.severity} />
             </div>
-
             <Divider />
-
             <h3 className="text-900 font-bold text-lg mb-2">Description</h3>
             <p className="text-600 line-height-3 text-base mb-4">
               {product.description || "No description available"}
             </p>
-
             <Divider />
-
             {/* Metadata grid */}
             <div className="grid mb-4">
               <div className="col-6">
@@ -280,7 +315,6 @@ const ProductDetail = () => {
                 <Tag value={product.isActive ? "Active" : "Inactive"} severity={product.isActive ? "success" : "danger"} />
               </div>
             </div>
-
             {/* Add to Cart */}
             {product.stock > 0 && product.isActive ? (
               <div className="flex flex-column sm:flex-row align-items-stretch sm:align-items-center gap-3">
@@ -320,7 +354,6 @@ const ProductDetail = () => {
           </div>
         </div>
       </div>
-
       {/* Related Products */}
       {relatedProducts.length > 0 && (
         <div className="mt-6">

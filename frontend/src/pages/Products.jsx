@@ -15,40 +15,37 @@ import MobilePaginator from "../components/MobilePaginator";
 const FALLBACK_IMG =
   "https://primefaces.org/cdn/primereact/images/usercard.png";
 const VIEW_KEY = "products_view";
-
 const Products = () => {
   const toast = useRef(null);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const addToCart = useCartStore((s) => s.addToCart);
-
   const [categories, setCategories] = useState([]);
   const [products, setProducts] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState(() => searchParams.get("category") || null);
   const [viewMode, setViewMode] = useState(
     () => localStorage.getItem(VIEW_KEY) || "grid",
   );
-
   const [addingId, setAddingId] = useState(null);
   const [first, setFirst] = useState(0);
   const [rows, setRows] = useState(12);
   const [totalRecords, setTotalRecords] = useState(0);
-
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
   const searchQuery = searchParams.get("search") || "";
-
   useEffect(() => {
     fetchCategories();
   }, []);
-
+  useEffect(() => {
+    const catId = searchParams.get("category");
+    if (catId && catId !== selectedCategory) {
+      setSelectedCategory(catId);
+    }
+  }, [searchParams]);
   useEffect(() => {
     fetchProducts();
   }, [first, rows, selectedCategory, searchQuery]);
-
   const fetchCategories = async () => {
     try {
       const res = await api.get("/category", { params: { limit: 50 } });
@@ -61,7 +58,6 @@ const Products = () => {
       //silent
     }
   };
-
   const fetchProducts = async () => {
     try {
       setLoading(true);
@@ -69,13 +65,10 @@ const Products = () => {
         page: Math.floor(first / rows) + 1,
         limit: rows,
       };
-
       if (selectedCategory !== null && selectedCategory !== undefined) {
         params.category = selectedCategory;
       }
-
       if (searchQuery) params.search = searchQuery;
-
       const res = await api.get("/products", { params });
       setProducts(res.data?.data || []);
       setTotalRecords(res.data?.meta?.total || 0);
@@ -86,17 +79,14 @@ const Products = () => {
       setLoading(false);
     }
   };
-
   const onPageChange = (e) => {
     setFirst(e.first);
     setRows(e.rows);
   };
-
   const switchView = (mode) => {
     setViewMode(mode);
     localStorage.setItem(VIEW_KEY, mode);
   };
-
   const handleAddToCart = async (product) => {
     if (!isAuthenticated) {
       toast.current?.show({
@@ -110,9 +100,7 @@ const Products = () => {
       }, 1000);
       return
     }
-
     setAddingId(product.id);
-
     try {
       await addToCart(product.id);
       toast.current?.show({
@@ -132,7 +120,6 @@ const Products = () => {
       setAddingId(null);
     }
   };
-
   const header = (product) => (
     <div
       className="relative overflow-hidden"
@@ -147,7 +134,6 @@ const Products = () => {
         onMouseOver={(e) => (e.target.style.transform = "scale(1.05)")}
         onMouseOut={(e) => (e.target.style.transform = "scale(1)")}
       />
-
       {product.stock <= 5 && product.stock > 0 && (
         <Tag
           value="Limited Stock"
@@ -156,7 +142,6 @@ const Products = () => {
           style={{ top: "10px", right: "10px" }}
         />
       )}
-
       {product.stock === 0 && (
         <Tag
           value="Out of Stock"
@@ -165,7 +150,6 @@ const Products = () => {
           style={{ top: "10px", right: "10px" }}
         />
       )}
-
       {product.stock > 0 && !product.isActive && (
         <Tag
           value="Unavailable"
@@ -176,10 +160,8 @@ const Products = () => {
       )}
     </div>
   );
-
   const footer = (product) => {
     const isAdding = addingId === product.id;
-
     return (
       <div className="flex flex-column gap-2">
         {product.isActive && product.stock > 0 && (
@@ -190,19 +172,16 @@ const Products = () => {
             </span>
           </div>
         )}
-
         <div className="flex align-items-center justify-content-between gap-1">
           <span className="text-xl md:text-2xl font-bold text-primary">
             ${Number(product.price).toFixed(2)}
           </span>
-
           {product.stock === 0 || !product.isActive ? (
             <Button
               label={product.stock === 0 ? "Out of Stock" : "Unavailable"}
               icon="pi pi-times"
-              className={`p-button-rounded p-button-sm p-button-${
-                product.stock === 0 ? "danger" : "warning"
-              } p-button-outlined`}
+              className={`p-button-rounded p-button-sm p-button-${product.stock === 0 ? "danger" : "warning"
+                } p-button-outlined`}
               disabled
             />
           ) : (
@@ -218,11 +197,9 @@ const Products = () => {
       </div>
     );
   };
-
   const ListRow = ({ product }) => {
     const isAdding = addingId === product.id;
     const unavailable = product.stock === 0 || !product.isActive;
-
     return (
       <div
         className="surface-card shadow-1 border-round-xl overflow-hidden flex hover:shadow-4 transition-duration-300"
@@ -248,7 +225,6 @@ const Products = () => {
             onMouseOut={(e) => (e.currentTarget.style.transform = "scale(1)")}
           />
         </div>
-
         <div className="flex flex-column justify-content-between flex-1 p-3 min-w-0 gap-1">
           <span
             className="font-bold text-900 text-base line-height-2 cursor-pointer hover:text-primary transition-duration-200"
@@ -262,7 +238,6 @@ const Products = () => {
           >
             {product.name}
           </span>
-
           <div className="flex align-items-center gap-2 flex-wrap">
             <Tag
               value={product.category || "General"}
@@ -283,7 +258,6 @@ const Products = () => {
               <Tag value="In Stock" severity="success" className="text-xs" />
             )}
           </div>
-
           <p
             className="m-0 text-500 text-xs line-height-3"
             style={{
@@ -295,7 +269,6 @@ const Products = () => {
           >
             {product.description || "No description available."}
           </p>
-
           <div className="flex align-items-end justify-content-between gap-3 flex-wrap mt-1">
             <div className="flex flex-column gap-1">
               <span className="text-2xl font-bold text-primary">
@@ -313,9 +286,8 @@ const Products = () => {
               <Button
                 label={product.stock === 0 ? "Out of Stock" : "Unavailable"}
                 icon="pi pi-times-circle"
-                className={`p-button-rounded p-button-sm p-button-outlined ${
-                  product.stock === 0 ? "p-button-danger" : "p-button-warning"
-                }`}
+                className={`p-button-rounded p-button-sm p-button-outlined ${product.stock === 0 ? "p-button-danger" : "p-button-warning"
+                  }`}
                 disabled
               />
             ) : (
@@ -355,16 +327,15 @@ const Products = () => {
 
   return (
     <div className="px-2 py-4 md:px-4 lg:px-6">
-      <Toast ref={toast} />
-
+     
+        <Toast ref={toast} />
       <div className="flex flex-column md:flex-row justify-content-between align-items-start md:align-items-center mb-5 gap-3">
         <div>
           <h1 className="text-900 font-bold text-4xl m-0 mb-2">Our Products</h1>
           <p className="text-600 text-lg m-0">
             Discover {totalRecords} amazing items selected just for you.
           </p>
-        </div>
-
+         </div>
         <div className="flex align-items-center gap-3">
           <Dropdown
             value={selectedCategory}
@@ -377,34 +348,29 @@ const Products = () => {
             placeholder="All Categories"
             className="w-15rem"
           />
-
-          <div
+            <div
             className="flex gap-1 border-round-lg p-1"
             style={{ background: "var(--surface-100)" }}
           >
             <Button
               icon="pi pi-th-large"
-              className={`p-button-sm p-button-rounded ${
-                viewMode === "grid" ? "" : "p-button-text p-button-secondary"
-              }`}
+              className={`p-button-sm p-button-rounded ${viewMode === "grid" ? "" : "p-button-text p-button-secondary"
+                }`}
               onClick={() => switchView("grid")}
               tooltip="Grid View"
               tooltipOptions={{ position: "top" }}
             />
-
-            <Button
+             <Button
               icon="pi pi-list"
-              className={`p-button-sm p-button-rounded ${
-                viewMode === "list" ? "" : "p-button-text p-button-secondary"
-              }`}
+              className={`p-button-sm p-button-rounded ${viewMode === "list" ? "" : "p-button-text p-button-secondary"
+                }`}
               onClick={() => switchView("list")}
               tooltip="List View"
               tooltipOptions={{ position: "top" }}
             />
           </div>
         </div>
-      </div>
-
+        </div>
       {loading ? (
         <div className="flex justify-content-center align-items-center py-8">
           <ProgressSpinner />
@@ -456,7 +422,6 @@ const Products = () => {
               ))}
             </div>
           )}
-
           {viewMode === "list" && (
             <div className="flex flex-column gap-2">
               {products.map((product) => (
@@ -464,7 +429,6 @@ const Products = () => {
               ))}
             </div>
           )}
-
           {totalRecords > rows && (
             <div className="flex justify-content-center mt-5">
               <MobilePaginator
@@ -473,7 +437,6 @@ const Products = () => {
                 totalRecords={totalRecords}
                 onPageChange={onPageChange}
               />
-
               <div className="hidden md:flex">
                 <Paginator
                   first={first}
@@ -491,5 +454,4 @@ const Products = () => {
     </div>
   );
 };
-
 export default Products;
