@@ -40,7 +40,7 @@
 <p>Comprehensive ER diagram:</p>
 
 <p align=\"center\">
-  <img src=\"./DB_Diagram.png\" alt=\"Database Schema\" width=\"100%\" />
+  <img src=\"./DB_Diagram.png" alt=\"Database Schema\" width=\"100%\" />
 </p>
 
 **Models & Relations:**
