@@ -37,10 +37,14 @@ const AdminProducts = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [galleryImages, setGalleryImages] = useState([]);
+  const [uploadingGallery, setUploadingGallery] = useState(false);
+  const [draggedImage, setDraggedImage] = useState(null);
   const [totalRecords, setTotalRecords] = useState(0);
   const [lazyParams, setLazyParams] = useState({ first: 0, rows: 10, page: 1 });
   const toast = useRef(null);
   const fileInputRef = useRef(null);
+  const galleryInputRef = useRef(null);
 
   useEffect(() => {
     fetchCategories();
@@ -89,6 +93,7 @@ const AdminProducts = () => {
     });
   };
 
+  // Create product - handle image upload 
   const handleImageUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -130,6 +135,84 @@ const AdminProducts = () => {
     });
     setIsEditing(true);
     setDialogVisible(true);
+    fetchGalleryImages(p.id);
+  };
+
+  const fetchGalleryImages = async (productId) => {
+    try {
+      const res = await api.get(`/products/${productId}/images`);
+      setGalleryImages(res.data || []);
+    } catch {
+      setGalleryImages([]);
+    }
+  };
+
+  const handleGalleryUpload = async (e) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+    setUploadingGallery(true);
+    try {
+      for (const file of files) {
+        const formData = new FormData();
+        formData.append('file', file);
+        await api.post(`/products/${product.id}/images`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+      }
+      toast.current?.show({ severity: 'success', summary: 'Uploaded', detail: `${files.length} image(s) added to gallery`, life: 2000 });
+      fetchGalleryImages(product.id);
+    } catch (err) {
+      toast.current?.show({ severity: 'error', summary: 'Upload Failed', detail: err.response?.data?.message || 'Failed to upload gallery image', life: 3000 });
+    } finally {
+      setUploadingGallery(false);
+      e.target.value = '';
+    }
+  };
+
+  const handleDeleteGalleryImage = async (imageId) => {
+    try {
+      await api.delete(`/products/${product.id}/images/${imageId}`);
+      toast.current?.show({ severity: 'success', summary: 'Deleted', detail: 'Image removed from gallery', life: 2000 });
+      fetchGalleryImages(product.id);
+    } catch {
+      toast.current?.show({ severity: 'error', summary: 'Error', detail: 'Failed to delete image', life: 3000 });
+    }
+  };
+
+  const handleDragStart = (img) => {
+    setDraggedImage(img);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault(); // Necessary to allow dropping
+  };
+
+  const handleDrop = async (targetImg) => {
+    if (!draggedImage || draggedImage.id === targetImg.id) return;
+    
+    // Optimistic UI update
+    const newImages = [...galleryImages];
+    const draggedIdx = newImages.findIndex(img => img.id === draggedImage.id);
+    const targetIdx = newImages.findIndex(img => img.id === targetImg.id);
+    
+    // Reorder array
+    newImages.splice(draggedIdx, 1);
+    newImages.splice(targetIdx, 0, draggedImage);
+    
+    setGalleryImages(newImages);
+    setDraggedImage(null);
+
+    // Sync with backend API
+    try {
+      await api.patch(`/products/${product.id}/images/reorder`, {
+        order: newImages.map(img => img.id)
+      });
+      // Optional: hide toast for drag-and-drop to keep it quiet and smooth
+      // toast.current?.show({ severity: 'success', summary: 'Reordered', detail: 'Gallery order saved', life: 1000 });
+    } catch (err) {
+      toast.current?.show({ severity: 'error', summary: 'Error', detail: 'Failed to reorder images', life: 3000 });
+      fetchGalleryImages(product.id); // Revert UI if API fails
+    }
   };
 
   const handleSave = async () => {
@@ -454,6 +537,69 @@ const AdminProducts = () => {
               <small className="text-500 block mt-2" style={{ wordBreak: 'break-all' }}>{product.imageUrl}</small>
             )}
           </div>
+
+          {/* ─── Gallery Images (edit mode only) ─── */}
+          {isEditing && product.id && (
+            <div className="field">
+              <label className="font-semibold mb-2 block">
+                <i className="pi pi-images mr-2" />
+                Gallery Images
+              </label>
+
+              {/* Gallery thumbnails */}
+              {galleryImages.length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {galleryImages.map((img) => (
+                    <div 
+                      key={img.id} 
+                      className="relative cursor-move" 
+                      style={{ width: '80px', height: '80px', opacity: draggedImage?.id === img.id ? 0.5 : 1 }}
+                      draggable
+                      onDragStart={() => handleDragStart(img)}
+                      onDragOver={handleDragOver}
+                      onDrop={() => handleDrop(img)}
+                    >
+                      <img
+                        src={img.url}
+                        alt={img.altText || 'Gallery'}
+                        className="border-round shadow-1 w-full h-full"
+                        style={{ objectFit: 'cover' }}
+                        draggable={false} // Prevent browser's default image drag
+                      />
+                      <Button
+                        icon="pi pi-times"
+                        className="p-button-rounded p-button-danger p-button-sm"
+                        style={{ position: 'absolute', top: '-8px', right: '-8px', width: '24px', height: '24px' }}
+                        onClick={() => handleDeleteGalleryImage(img.id)}
+                        tooltip="Remove"
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Hidden multi-file input */}
+              <input
+                ref={galleryInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                multiple
+                style={{ display: 'none' }}
+                onChange={handleGalleryUpload}
+              />
+
+              <Button
+                type="button"
+                label={uploadingGallery ? 'Uploading...' : 'Add Gallery Images'}
+                icon={uploadingGallery ? 'pi pi-spin pi-spinner' : 'pi pi-plus'}
+                className="p-button-outlined p-button-sm w-full"
+                onClick={() => galleryInputRef.current?.click()}
+                disabled={uploadingGallery}
+              />
+              <small className="text-500 block mt-1">Select multiple images at once. Max 5MB each.</small>
+            </div>
+          )}
+
           <div className="flex align-items-center gap-3">
             <label className="font-semibold">Active</label>
             <InputSwitch
