@@ -18,13 +18,21 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { ReportService } from './modules/report/report.service';
 import { ReportController } from './modules/report/report.controller';
 import { StorageModule } from './modules/storage/storage.module';
-
+import { CacheModule } from '@nestjs/cache-manager';
+import * as redisStore from 'cache-manager-redis-store';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
+    }),
+    CacheModule.register({
+      store: redisStore,
+      host: process.env.REDIS_HOST,
+      port: process.env.REDIS_PORT,
+      ttl: 60, // default 60 seconds
+      isGlobal: true,
     }),
     ScheduleModule.forRoot(),
     ThrottlerModule.forRoot([
@@ -38,4 +46,4 @@ import { StorageModule } from './modules/storage/storage.module';
   controllers: [AppController, UsersController, PaymentsController, ReportController],
   providers: [AppService, UsersService, PaymentsService, ReportService],
 })
-export class AppModule {}
+export class AppModule { }

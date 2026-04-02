@@ -7,6 +7,7 @@ import { BadRequestException, Body, Controller, Delete, Get, NotFoundException, 
 import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { PrismaService } from "src/prisma/prisma.service";
 import { StorageService } from "../storage/storage.service";
+import { ProductsService } from "./products.service";
 import { JwtAuthGuard } from "src/common/guards/jwt-auth.guard";
 import { RolesGuard } from "src/common/guards/roles.guard";
 import { Roles } from "src/common/decorators/roles.decorator";
@@ -19,6 +20,7 @@ export class ProductImagesController{
     constructor(
         private readonly primsa : PrismaService,
         private readonly storageService : StorageService,
+        private readonly productsService : ProductsService,
     ){}
 
     @Post()
@@ -76,7 +78,9 @@ export class ProductImagesController{
                 productId,
                 position,
             }
-        })
+        });
+
+        await this.productsService.clearProductCache(productId);
         return image;
     }
 
@@ -116,7 +120,9 @@ export class ProductImagesController{
 
         await this.primsa.productImage.delete({
             where:{id: imageId}
-        })
+        });
+
+        await this.productsService.clearProductCache(productId);
         return { message : "Image deleted successfully"}
     }
 
@@ -149,7 +155,9 @@ export class ProductImagesController{
                 where:{id:imageId, productId},
                 data: {position: index},
             }))
-        )
+        );
+
+        await this.productsService.clearProductCache(productId);
 
         return this.primsa.productImage.findMany({
             where:{productId},
