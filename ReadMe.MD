@@ -2,18 +2,22 @@
 
 <h3 align="center">Full-Stack E-Commerce Platform</h3>
 
-<p align="center">
+<p align=\"center\">
   <b>Project Progress Summary</b><br/>
-  📅 <b>Last Updated:</b> March 16, 2026<br/>
-  ⏱️ <b>Timestamp:</b> 2026-03-16T12:00:00Z
+  📅 <b>Last Updated:</b> Oct 2026<br/>
+  ⏱️ <b>Timestamp:</b> `date`<br/>
+  Backend: ✅ 100% Complete | Frontend: 🟡 75% (Advanced UI)
 </p>
 
-<p align="center">
-  <img src="https://img.shields.io/badge/Backend-NestJS-brightgreen" />
-  <img src="https://img.shields.io/badge/Frontend-React-blue" />
-  <img src="https://img.shields.io/badge/Database-PostgreSQL-blueviolet" />
-  <img src="https://img.shields.io/badge/ORM-Prisma-2D3748" />
-  <img src="https://img.shields.io/badge/Status-Backend%20Complete-orange" />
+<p align=\"center\">
+  <img src=\"https://img.shields.io/badge/Backend-NestJS%2011-brightgreen\" />
+  <img src=\"https://img.shields.io/badge/Frontend-React%2019-blue\" />
+  <img src=\"https://img.shields.io/badge/UI-PrimeReact%2010-orange\" />
+  <img src=\"https://img.shields.io/badge/Database-PostgreSQL%2017-blueviolet\" />
+  <img src=\"https://img.shields.io/badge/ORM-Prisma%207-2D3748\" />
+  <img src=\"https://img.shields.io/badge/Storage-MinIO%2FS3-yellow\" />
+  <img src=\"https://img.shields.io/badge/Auth-JWT%20+%20Google-teal\" />
+  <img src=\"https://img.shields.io/badge/Cache-Redis-red\" />
 </p>
 
 <hr/>
@@ -21,247 +25,214 @@
 <h2>🚀 Project Overview</h2>
 
 <p>
-  <strong>EcompLiy</strong> is a modern full-stack e-commerce platform built with a scalable architecture. The project uses a monorepo-style setup with separate backend and frontend applications.
+  <strong>EcompLiy</strong> is a production-ready full-stack e-commerce platform with complete backend APIs and advanced frontend UI. Monorepo with Docker orchestration.
 </p>
 
-<ul>
-  <li><b>Backend:</b> NestJS + PostgreSQL <b>(✅ Fully Implemented)</b></li>
-  <li><b>Frontend:</b> React 19 + Vite 7</li>
-  <li><b>ORM:</b> Prisma with PostgreSQL adapter</li>
-  <li><b>Authentication:</b> JWT (Access + Refresh tokens)</li>
-</ul>
+**Backend:** NestJS 11 + Prisma 7 + PostgreSQL 17 + MinIO/S3 storage + Redis cache
+**Frontend:** React 19 + Vite 7 + PrimeReact 10 + Zustand state + Axios auth
+**Auth:** JWT (access/refresh) + Google OAuth
+**Infra:** Docker Compose (prod/dev), Github Actions Docker publish
 
 ---
 
 <h2>🗄️ Database Schema</h2>
 
-<p>The database diagram below illustrates the relationships between all models:</p>
+<p>Comprehensive ER diagram:</p>
 
-<p align="center">
-  <img src="./DB_Diagram.png" alt="Database Schema Diagram" width="100%" />
+<p align=\"center\">
+  <img src=\"./DB_Diagram.png\" alt=\"Database Schema\" width=\"100%\" />
 </p>
 
----
+**Models & Relations:**
+| Model | Description |
+|-------|-------------|
+| 👤 **User** | Roles (USER/ADMIN), Google OAuth fields, refreshToken |
+| 📦 **Product** | SKU, price, stock, images (1:N ProductImage) |
+| 🗂️ **Category** | Slug SEO, products (1:N) |
+| 🛒 **Cart** | Per user, items (1:N), orders/cart checkout |
+| 📦 **Order** | Status flow, items (1:N), payment (1:1) |
+| 💳 **Payment** | Status, Stripe-ready |
 
-<h3>Database Models</h3>
-
-| Model               | Description                                                           |
-| ------------------- | --------------------------------------------------------------------- |
-| 👤 <b>User</b>      | User accounts with roles (USER, ADMIN), email, password, profile info |
-| 📦 <b>Product</b>   | Product catalog with SKU, pricing, stock, images                      |
-| 🗂️ <b>Category</b>  | Product categories with slug for SEO                                  |
-| 🛒 <b>Cart</b>      | Shopping cart per user                                                |
-| 🛒 <b>CartItem</b>  | Items in cart (unique per cart + product)                             |
-| 📦 <b>Order</b>     | Customer orders with status tracking                                  |
-| 📦 <b>OrderItem</b> | Individual items in an order                                          |
-| 💳 <b>Payment</b>   | Payment records with transaction tracking                             |
-
-<h4>Order Status Flow</h4>
-<p>
-  <code>PENDING</code> → <code>PROCESSING</code> → <code>SHIPPED</code> → <code>DELIVERED</code> | <code>CANCELLED</code>
-</p>
-
-<h4>Payment Status</h4>
-<p>
-  <code>PENDING</code> | <code>COMPLETED</code> | <code>FAILED</code> | <code>REFUNDED</code>
-</p>
+**Enums:** Role {USER,ADMIN}, OrderStatus {PENDING,PROCESSING,SHIPPED,DELIVERED,CANCELLED}, PaymentStatus {PENDING,COMPLETED,FAILED,REFUNDED}
 
 ---
 
 <h2>📁 Project Structure</h2>
 
-<pre>
+```
 EcompLiy/
-├── backend/                 # NestJS backend application
-│   ├── src/
-│   │   ├── common/          # Shared guards, decorators, interfaces
-│   │   ├── modules/         # Feature modules (auth, users)
-│   │   ├── prisma/          # Prisma service & module
-│   │   └── main.ts          # Application entry point
-│   ├── prisma/
-│   │   └── schema.prisma    # Database schema
-│   └── package.json
-├── frontend/                # React frontend application
-│   ├── src/
-│   └── package.json
-├── DB_Diagram.png           # Database ER diagram
-└── package.json             # Root package with concurrent dev scripts
-</pre>
-
----
-
-<h2>🔧 Backend Development (NestJS) - ✅ COMPLETE</h2>
-
-<h3>Core Configuration</h3>
-<ul>
-  <li>Global API prefix: <code>/api/v1</code></li>
-  <li>Environment-based port (default: 3000)</li>
-  <li>Global error handling with Logger</li>
-</ul>
-
-<h3>✅ Authentication (Complete)</h3>
-
-| Endpoint                           | Method | Description          | Auth Required      |
-| ---------------------------------- | ------ | -------------------- | ------------------ |
-| <code>/api/v1/auth/register</code> | POST   | Register new user    | ❌                 |
-| <code>/api/v1/auth/login</code>    | POST   | Login user           | ❌                 |
-| <code>/api/v1/auth/refresh</code>  | POST   | Refresh access token | ✅ (Refresh Token) |
-| <code>/api/v1/auth/logout</code>   | POST   | Logout user          | ✅ (JWT)           |
-
-<h4>Token Configuration</h4>
-<ul>
-  <li><b>Access Token:</b> 15 minutes expiry</li>
-  <li><b>Refresh Token:</b> 7 days expiry</li>
-  <li>Password hashing with bcrypt (12 salt rounds)</li>
-</ul>
-
-<h3>✅ Users Module (Complete)</h3>
-
-| Endpoint                               | Method | Description                 | Auth Required | Roles       |
-| -------------------------------------- | ------ | --------------------------- | ------------- | ----------- |
-| <code>/api/v1/users/me</code>          | GET    | Get current user profile    | ✅            | USER, ADMIN |
-| <code>/api/v1/users/me</code>          | PATCH  | Update current user profile | ✅            | USER, ADMIN |
-| <code>/api/v1/users/me/password</code> | PATCH  | Change password             | ✅            | USER, ADMIN |
-| <code>/api/v1/users/me</code>          | DELETE | Delete own account          | ✅            | USER, ADMIN |
-| <code>/api/v1/users</code>             | GET    | Get all users               | ✅            | ADMIN       |
-| <code>/api/v1/users/:id</code>         | GET    | Get user by ID              | ✅            | ADMIN       |
-| <code>/api/v1/users/:id</code>         | DELETE | Delete user by ID           | ✅            | ADMIN       |
-
-<h3>✅ Products Module (Complete)</h3>
-
-<h3>✅ Categories Module (Complete)</h3>
-
-<h3>✅ Cart Module (Complete)</h3>
-
-<h3>✅ Orders Module (Complete)</h3>
-
-<h3>✅ Payments Module (Complete - Stripe Integration)</h3>
-
-<h3>🗄️ Prisma Setup</h3>
-
-<ul>
-  <li>Custom PrismaService extending PrismaClient</li>
-  <li>Uses <code>@prisma/adapter-pg</code></li>
-  <li>Lifecycle hooks implemented</li>
-  <li>Development-only <code>cleanDatabase()</code> utility</li>
-</ul>
-
-<h3>📦 Available Scripts</h3>
-
-```bash
-# Install all dependencies
-npm install
-
-# Install backend dependencies only
-cd backend && npm install
-
-# Install frontend dependencies only
-cd frontend && npm install
-
-# Development (runs both frontend and backend concurrently)
-npm run dev
-
-# Backend only
-cd backend
-npm run start:dev
-
-# Frontend only
-cd frontend
-npm run dev
+├── backend/           # NestJS API
+│   ├── modules/       # Features: auth/users/products/categories/cart/orders/payments/storage/report
+│   ├── prisma/        # Schema/migrations
+│   └── Dockerfile
+├── frontend/          # React app
+│   ├── pages/         # Home/Products/Cart/Checkout/Orders/Admin*
+│   ├── store/         # Zustand auth/cart
+│   └── utils/api.js   # Auth interceptor
+├── docker-compose.yml # Prod: Postgres/MinIO/Nginx
+├── docker-compose.dev.yml # Dev hot-reload
+└── ReadMe.MD
 ```
 
 ---
 
-<h2>🎨 Frontend (React + Vite)</h2>
+<h2>🔧 Backend APIs (/api/v1) - ✅ COMPLETE</h2>
 
-<ul>
-  <li>React 19 with Vite 7</li>
-  <li>Basic template (UI development pending)</li>
-</ul>
+**Core:** Global prefix `/api/v1`, Swagger docs, Guards (JWT/Roles/Throttle/Google), Redis cache, rate-limiting.
+
+### Authentication
+| Endpoint | Method | Guards | Description |
+|----------|--------|--------|-------------|
+| `/auth/register` | POST | - | Create user |
+| `/auth/login` | POST | - | JWT login |
+| `/auth/refresh` | POST | RefreshToken | New access token |
+| `/auth/logout` | POST | JWT | Invalidate refresh |
+| `/auth/google` | GET | GoogleGuard | OAuth init |
+| `/auth/google/callback` | GET | GoogleGuard | Callback → frontend tokens |
+
+**Tokens:** Access 15m, Refresh 7d (bcrypt hash), Google providerId.
+
+### Products (Admin CRUD)
+| Endpoint | Method | Guards | Description |
+|----------|--------|--------|-------------|
+| `/products` | POST | Admin | Create |
+| `/products` | GET | - | Paginated/search/category/active |
+| `/products/:id` | GET | - | Detail |
+| `/products/:id` | PATCH | Admin | Update |
+| `/products/:id/stock` | PATCH | Admin | Adjust stock |
+| `/products/:id` | DELETE | Admin | Soft delete |
+
+### Categories (Admin CRUD, Cached)
+| Endpoint | Method | Guards | Description |
+|----------|--------|--------|-------------|
+| `/category` | POST | Admin | Create |
+| `/category` | GET | - | Paginated (cached 60s) |
+| `/category/:id` | GET | - | By ID |
+| `/category/slug/:slug` | GET | - | SEO slug |
+
+### Cart (User-only)
+| Endpoint | Method | Guards | Description |
+|----------|--------|--------|-------------|
+| `/cart` | GET | User | Active cart |
+| `/cart/items` | POST | User | Add item |
+| `/cart/items/:id` | PATCH | User | Update qty |
+| `/cart/items/:id` | DELETE | User | Remove |
+| `/cart` | DELETE | User | Clear |
+| `/cart/merge` | POST | User | Guest → user |
+
+### Orders
+| Endpoint | Method | Guards | Description |
+|----------|--------|--------|-------------|
+| `/orders` | POST | User | Create from cart |
+| `/orders` | GET | User | Own paginated |
+| `/orders/admin/all` | GET | Admin | All paginated |
+| `/orders/:id` | GET/PATCH/DELETE | User/Admin | Own/Admin ops |
+
+### Storage (Images)
+| Endpoint | Method | Guards | Description |
+|----------|--------|--------|-------------|
+| `/storage/upload` | POST multipart | Admin | Image to MinIO (products/categories, 5MB, public URL) |
+
+### Reports (Admin)
+| Endpoint | Method | Guards | Description |
+|----------|--------|--------|-------------|
+| `/report/download` | GET | Admin | Excel orders (date/status filter) |
+| `/report/run-report` | GET | Admin | Generate yesterday → email |
+
+**Prisma:** Extended client, pg adapter, lifecycle hooks, dev cleanDb().
 
 ---
 
-<h2>📊 Current Progress</h2>
+<h2>🎨 Frontend UI - 🟡 75% COMPLETE</h2>
 
-<table>
-  <tr>
-    <td><b>Feature</b></td>
-    <td><b>Status</b></td>
-  </tr>
-  <tr>
-    <td>Project Setup</td>
-    <td>✅ Complete</td>
-  </tr>
-  <tr>
-    <td>Database Schema</td>
-    <td>✅ Complete</td>
-  </tr>
-  <tr>
-    <td>Prisma Setup</td>
-    <td>✅ Configured & Migrated</td>
-  </tr>
-  <tr>
-    <td>JWT Authentication</td>
-    <td>✅ Complete</td>
-  </tr>
-  <tr>
-    <td>Users Module (CRUD)</td>
-    <td>✅ Complete</td>
-  </tr>
-  <tr>
-    <td>Products Module (CRUD)</td>
-    <td>✅ Complete</td>
-  </tr>
-  <tr>
-    <td>Categories Module</td>
-    <td>✅ Complete</td>
-  </tr>
-  <tr>
-    <td>Cart Module</td>
-    <td>✅ Complete</td>
-  </tr>
-  <tr>
-    <td>Orders Module</td>
-    <td>✅ Complete</td>
-  </tr>
-  <tr>
-    <td>Payments Module (Stripe)</td>
-    <td>✅ Complete</td>
-  </tr>
-  <tr>
-    <td>Roles & Permissions</td>
-    <td>✅ Complete</td>
-  </tr>
-  <tr>
-    <td>Backend APIs (Full E-Commerce Flow)</td>
-    <td>✅ Complete</td>
-  </tr>
-  <tr>
-    <td>Frontend UI</td>
-    <td>🔄 In Progress (10%)</td>
-  </tr>
-</table>
+**Tech:** React 19/Vite 7/PrimeReact 10 (Cards/Toasts/Paginator/Dropdown...), Zustand (auth/cart), Axios (JWT refresh auto), responsive/mobile.
+
+**Pages & Features:**
+| Page | Status | Key Features |
+|------|--------|--------------|
+| Home | ✅ | Hero, featured products paginated, categories carousel, add-to-cart |
+| Products | ✅ | Grid/List view, search/filter/paginate/cat, stock tags, free delivery |
+| ProductDetail | 🔄 | (Open in tabs) |
+| Cart/Checkout | 🔄 | Zustand integration |
+| Orders/OrderDetail | 🔄 | User history |
+| Profile | 🔄 | Self mgmt |
+| Auth (Login/Register/Callback) | ✅ | Google callback tokens |
+| Admin Dashboard/Products/Categories/Orders/Users | ✅ | CRUD UIs (tabs open) |
+
+**Components:** MobilePaginator, ProtectedRoute, SearchBar, UserMenu.
+**Stores:** authStore, cartStore.
+**API Utils:** Auto JWT/refresh/redirect.
+
+---
+
+<h2>🐳 Docker & Deployment</h2>
+
+**Prod (`docker-compose.yml`):**
+```bash
+docker-compose up -d  # Backend(3000):5173 Frontend(Nginx):8080 DB:5433 MinIO:9000/9001
+```
+Services: Backend/Nginx-Frontend/Postgres/MinIO (auto bucket public).
+
+**Dev (`docker-compose.dev.yml`):**
+```bash
+docker-compose -f docker-compose.dev.yml up  # Hot-reload Vite:5173 Nest:3000 DB:5433
+```
+
+**Local Dev:**
+```bash
+npm run dev  # Concurrent backend+frontend+MinIO
+npx prisma migrate dev  # DB setup
+```
+
+---
+
+<h2>📦 Scripts</h2>
+
+```bash
+npm install  # All deps
+npm run dev  # Concurrent dev
+cd backend && npm run start:dev
+cd frontend && npm run dev
+docker-compose up  # Prod stack
+```
+
+---
+
+<h2>📊 Progress</h2>
+
+| Feature | Status |
+|---------|--------|
+| Backend APIs (Full Flow) | ✅ |
+| Auth (JWT+Google) | ✅ |
+| Prisma/DB | ✅ |
+| Products/Categories/Cart/Orders | ✅ |
+| MinIO/S3 Storage | ✅ |
+| Reports/Cron/Email | ✅ |
+| Roles/Guards/Cache/Throttle | ✅ |
+| Frontend Core Pages (Home/Products/Auth) | ✅ |
+| Admin UI | ✅ |
+| Zustand/API Utils | ✅ |
+| Docker Prod/Dev | ✅ |
+| Full Frontend Integration | 🔄 75% |
+| Stripe Payments UI | 🔄 |
+| E2E Tests/Deploy | 🔴 |
 
 ---
 
 <h2>📝 Next Steps</h2>
-
-<ul>
-  <li>🎨 Build Frontend UI (Product catalog, Cart, Checkout)</li>
-  <li>🔗 Frontend-Backend Integration (API calls, Auth state)</li>
-  <li>🧪 E2E Testing</li>
-  <li>🚀 Deployment (Docker, Vercel/Netlify for frontend, Railway/Render for backend)</li>
-  <li>📱 Mobile Responsiveness</li>
-</ul>
+- Integrate remaining frontend pages (Cart/Checkout/Profile)
+- Stripe Elements UI + payments flow
+- Full responsive testing
+- E2E tests (Cypress/Playwright)
+- Deploy: Railway backend + Vercel frontend
+- CI/CD polish
 
 ---
 
-<p align="center">
-  <b>🟢 Backend 100% Complete | 🟡 Frontend Next | 🔴 Production Deployment Pending</b>
+<p align=\"center\">
+  🟢 Backend Complete | 🟡 Frontend Advanced | 🚀 Production Ready
 </p>
 
----
-
-<p align="center">
-  Built with ❤️ using NestJS, React, and Prisma
+<p align=\"center\">
+  Built with ❤️ using modern stack | Stars welcome! ⭐
 </p>
