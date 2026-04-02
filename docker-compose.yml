@@ -16,8 +16,18 @@ services:
       - FRONTEND_URL=http://localhost:8080
       # Google OAuth callback must go through Nginx proxy, not directly to backend
       - GOOGLE_CALLBACK_URL=http://localhost:8080/api/v1/auth/google/callback
+      
+      # MinIO Configuration for Docker
+      - MINIO_ENDPOINT=http://minio
+      - MINIO_PORT=9000
+      - MINIO_ACCESS_KEY=992814560164-3q7atpv06bemgv5fgaaum5ur3egplt7s
+      - MINIO_SECRET_KEY=992814560164-3q7atpv06bemgv5fgaaum5ur3egplt7s
+      - MINIO_BUCKET=products
+      - MINIO_PUBLIC_URL=http://localhost:9000
     depends_on:
       db:
+        condition: service_started
+      minio:
         condition: service_started
 
   frontend:
@@ -42,5 +52,30 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql
 
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: 992814560164-3q7atpv06bemgv5fgaaum5ur3egplt7s
+      MINIO_ROOT_PASSWORD: 992814560164-3q7atpv06bemgv5fgaaum5ur3egplt7s
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+
+  minio-createbuckets:
+    image: minio/mc:latest
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+      /usr/bin/mc config host add myminio http://minio:9000 992814560164-3q7atpv06bemgv5fgaaum5ur3egplt7s 992814560164-3q7atpv06bemgv5fgaaum5ur3egplt7s;
+      /usr/bin/mc mb myminio/products --ignore-existing;
+      /usr/bin/mc anonymous set download myminio/products;
+      exit 0;
+      "
+
 volumes:
   postgres_data:
+  minio_data:

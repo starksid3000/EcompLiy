@@ -1,8 +1,11 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException, Inject } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import type { Cache } from 'cache-manager';
+import { ProductsService } from '../products/products.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { CategoryResponseDto } from './dto/category-response.dto';
 import { Category, Prisma } from '@prisma/client';
@@ -12,7 +15,11 @@ import { UpdateCategoryDto } from './dto/update-category.dto';
 
 @Injectable()
 export class CategoryService {
-    constructor(private prisma: PrismaService ){}
+    constructor(
+        private prisma: PrismaService,
+        @Inject(CACHE_MANAGER) private cacheManager: Cache,
+        private productsService: ProductsService
+    ){}
 
     async create(createCategoryDto: CreateCategoryDto): Promise<CategoryResponseDto>{
         const {name, slug, ...rest} = createCategoryDto;
@@ -37,6 +44,9 @@ export class CategoryService {
                 ...rest,
             }
         });
+
+        await this.cacheManager.clear();
+        await this.productsService.bumpCacheVersion();
         return this.formatCategory(category, 0);
     }
     //Get all catergories with optional filters and pagination
@@ -141,7 +151,10 @@ export class CategoryService {
                         select: {products:true}
                     }
                 }
-            }) 
+            });
+
+            await this.cacheManager.clear();
+            await this.productsService.bumpCacheVersion();
             return this.formatCategory(updatedCategory, Number(updatedCategory._count.products));
         
     }
@@ -165,7 +178,10 @@ export class CategoryService {
         }
         await this.prisma.category.delete({
             where: {id},
-        })
+        });
+
+        await this.cacheManager.clear();
+        await this.productsService.bumpCacheVersion();
         return {message: "Category deleted successfully"};
     }
     //Format Category in responseDto (HELPER)

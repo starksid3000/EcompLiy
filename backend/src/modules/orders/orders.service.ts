@@ -2,7 +2,9 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, Inject } from '@nestjs/common';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import type { Cache } from 'cache-manager';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { OrderApiResponseDto, OrderResponseDto } from './dto/order-response.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -14,7 +16,10 @@ import * as nodemailer from 'nodemailer';
 
 @Injectable()
 export class OrdersService {
-    constructor(private prisma: PrismaService) { }
+    constructor(
+        private prisma: PrismaService,
+        @Inject(CACHE_MANAGER) private cacheManager: Cache
+    ) { }
     async create(userId: string, createdOrderDto: CreateOrderDto): Promise<OrderApiResponseDto<OrderResponseDto>> {
         const { items, shippingAddress } = createdOrderDto;
 
@@ -96,7 +101,9 @@ export class OrdersService {
                 })
             }
             return newOrder;
-        })
+        });
+
+        await this.bumpCacheVersion();
         return this.wrap(order);
     }
 
@@ -106,6 +113,11 @@ export class OrdersService {
         page: number,
         limit: number,
     }> {
+        const version = await this.getCacheVersion();
+        const cacheKey = `orders:admin:v${version}:${JSON.stringify(query)}`;
+        const cached = await this.cacheManager.get<any>(cacheKey);
+        if (cached) return cached;
+
         const { page = 1, limit = 10, startDate, endDate, status, search } = query;
         const skip = (page - 1) * limit;
 
@@ -145,12 +157,15 @@ export class OrdersService {
             }),
             this.prisma.order.count({ where })
         ])
-        return {
+        const result = {
             data: orders.map((o) => this.map(o)),
             total,
             page,
             limit,
         };
+
+        await this.cacheManager.set(cacheKey, result, 15000); // 15 second TTL
+        return result;
     }
 
     //Get User current orders
@@ -163,6 +178,11 @@ export class OrdersService {
         page: number;
         limit: number;
     }> {
+        const version = await this.getCacheVersion();
+        const cacheKey = `orders:user:${userId}:v${version}:${JSON.stringify(query)}`;
+        const cached = await this.cacheManager.get<any>(cacheKey);
+        if (cached) return cached;
+
         const { page = 1, limit = 10, status, search } = query;
         const skip = (page - 1) * limit;
 
@@ -188,12 +208,15 @@ export class OrdersService {
             this.prisma.order.count({ where }),
         ]);
 
-        return {
+        const result = {
             data: orders.map((o) => this.map(o)),
             total,
             page,
             limit,
         };
+
+        await this.cacheManager.set(cacheKey, result, 15000);
+        return result;
     }
 
     //Find order by id
@@ -247,6 +270,7 @@ export class OrdersService {
             await this.sendStatusUpdateEmail(updated);
         }
 
+        await this.bumpCacheVersion();
         return this.wrap(updated);
     }
 
@@ -286,7 +310,9 @@ export class OrdersService {
                     user: true,
                 }
             })
-        })
+        });
+
+        await this.bumpCacheVersion();
         return this.wrap(cancelled);
     }
 
@@ -417,5 +443,13 @@ export class OrdersService {
         } catch (err) {
             console.error("Failed to send status update email:", err);
         }
+    }
+    //helper 
+    private async getCacheVersion(): Promise<number> {
+        return (await this.cacheManager.get<number>('orders_version')) || 1;
+    }
+
+    private async bumpCacheVersion(): Promise<number> {
+        return (await this.cacheManager.set('orders_version', Date.now()));
     }
 }

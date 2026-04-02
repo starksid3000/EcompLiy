@@ -4,6 +4,7 @@
 import {
   BadRequestException,
   ConflictException,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -13,10 +14,14 @@ import { Category, Prisma, Product, ProductImage } from '@prisma/client';
 import { ProductResponseDto } from './dto/product-response.dto';
 import { QueryProductDto } from './dto/query-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
-
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import type { Cache } from 'cache-manager';
 @Injectable()
 export class ProductsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+  ) { }
 
   // Create product
   async create(
@@ -42,45 +47,57 @@ export class ProductsService {
       },
     });
 
+    await this.bumpCacheVersion();
     return this.formatProduct(product);
   }
   // Get all product
-  async findAll(queryDto: QueryProductDto): Promise<{
-    data: ProductResponseDto[];
-    meta: {
-      total: number;
-      page: number;
-      limit: number;
-      totalPages: number;
-    };
-  }> {
+  async findAll(queryDto: QueryProductDto) {
+    const timeLabel = `fetch_products_${Date.now()}`;
+    console.time(timeLabel);
+
+    const version = await this.getCacheVersion();
+    const cacheKey = `products:v${version}:${JSON.stringify(queryDto)}`;
+
+    const cached = await this.cacheManager.get(cacheKey);
+    if (cached) {
+      console.log(`\n[Redis] CACHE HIT for ${cacheKey}`);
+      console.timeEnd(timeLabel);
+      return cached;
+    }
+
+    console.log(`\n[Redis] CACHE MISS for ${cacheKey} -> Querying DB`);
     const { category, isActive, search, page = 1, limit = 10 } = queryDto;
+
+    let result;
 
     if (search) {
       const formattedSearch = search.trim();
 
-      const categoryFilter = category ? Prisma.sql`AND p."categoryId" = ${category}` : Prisma.empty;
-      const activeFilter = isActive !== undefined ? Prisma.sql`AND p."isActive" = ${isActive}` : Prisma.empty;
+      const categoryFilter = category
+        ? Prisma.sql`AND p."categoryId" = ${category}`
+        : Prisma.empty;
+
+      const activeFilter =
+        isActive !== undefined
+          ? Prisma.sql`AND p."isActive" = ${isActive}`
+          : Prisma.empty;
 
       const rawProducts = await this.prisma.$queryRaw<any[]>`
-        SELECT p.*, c.name as category_name
-        FROM products p
-        JOIN category c ON p."categoryId" = c.id
-        WHERE 
-            (to_tsvector('english', p.name || ' ' || coalesce(p.description, '')) @@ plainto_tsquery('english', ${formattedSearch})
-             OR similarity(p.name, ${formattedSearch}) > 0.15
-             OR similarity(coalesce(p.description, ''), ${formattedSearch}) > 0.15)
-            ${categoryFilter}
-            ${activeFilter}
-        ORDER BY 
-            ts_rank(to_tsvector('english', p.name || ' ' || coalesce(p.description, '')), plainto_tsquery('english', ${formattedSearch})) + 
-            similarity(p.name, ${formattedSearch}) DESC
-      `;
+      SELECT p.*, c.name as category_name
+      FROM products p
+      JOIN category c ON p."categoryId" = c.id
+      WHERE 
+        (to_tsvector('english', p.name || ' ' || coalesce(p.description, '')) @@ plainto_tsquery('english', ${formattedSearch})
+        OR similarity(p.name, ${formattedSearch}) > 0.15
+        OR similarity(coalesce(p.description, ''), ${formattedSearch}) > 0.15)
+        ${categoryFilter}
+        ${activeFilter}
+    `;
 
       const total = rawProducts.length;
       const paginated = rawProducts.slice((page - 1) * limit, page * limit);
 
-      return {
+      result = {
         data: paginated.map((p) => ({
           ...p,
           price: Number(p.price),
@@ -93,38 +110,48 @@ export class ProductsService {
           totalPages: Math.ceil(total / limit),
         },
       };
+    } else {
+      const where: Prisma.ProductWhereInput = {};
+      if (category) where.categoryId = category;
+      if (isActive !== undefined) where.isActive = isActive;
+
+      const total = await this.prisma.product.count({ where });
+
+      const products = await this.prisma.product.findMany({
+        where,
+        skip: (page - 1) * limit,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        include: { category: true },
+      });
+
+      result = {
+        data: products.map((product) => this.formatProduct(product)),
+        meta: {
+          total,
+          page,
+          limit,
+          totalPages: Math.ceil(total / limit),
+        },
+      };
     }
 
-    // Standard non-search pipeline
-    const where: Prisma.ProductWhereInput = {};
-    if (category) where.categoryId = category;
-    if (isActive !== undefined) where.isActive = isActive;
+    await this.cacheManager.set(cacheKey, result, 60); // Cache for 60 seconds
+    console.timeEnd(timeLabel);
 
-    const total = await this.prisma.product.count({ where });
-
-    const products = await this.prisma.product.findMany({
-      where,
-      skip: (page - 1) * limit,
-      take: limit,
-      orderBy: { createdAt: 'desc' },
-      include: {
-        category: true,
-      },
-    });
-
-    return {
-      data: products.map((product) => this.formatProduct(product)),
-      meta: {
-        total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit),
-      },
-    };
+    return result;
   }
 
   // Get product by id
   async findOne(id: string): Promise<ProductResponseDto> {
+    const cacheKey = `product:${id}`;
+    const cached = await this.cacheManager.get<ProductResponseDto>(cacheKey);
+    if (cached) {
+      console.log(`\n[Redis] CACHE HIT for ${cacheKey}`);
+      return cached;
+    }
+
+    console.log(`\n[Redis] CACHE MISS for ${cacheKey} -> Querying DB`);
     const product = await this.prisma.product.findUnique({
       where: { id },
       include: {
@@ -136,7 +163,9 @@ export class ProductsService {
       throw new NotFoundException('Product not found');
     }
 
-    return this.formatProduct(product);
+    const formatted = this.formatProduct(product);
+    await this.cacheManager.set(cacheKey, formatted, 60); // Cache for 60 seconds
+    return formatted;
   }
 
   // Update product
@@ -177,7 +206,8 @@ export class ProductsService {
         images: { orderBy: { position: 'asc' } },
       },
     });
-
+    await this.cacheManager.del(`product:${id}`);
+    await this.bumpCacheVersion();
     return this.formatProduct(updatedProduct);
   }
 
@@ -204,7 +234,8 @@ export class ProductsService {
         images: { orderBy: { position: 'asc' } },
       },
     });
-
+    await this.cacheManager.del(`product:${id}`);
+    await this.bumpCacheVersion();
     return this.formatProduct(updatedProduct);
   }
 
@@ -231,10 +262,13 @@ export class ProductsService {
     await this.prisma.product.delete({
       where: { id },
     });
-
+    await this.cacheManager.del(`product:${id}`);
+    await this.bumpCacheVersion();
     return { message: 'Product deleted successfully' };
   }
 
+
+  //Helpers
   private formatProduct(
     product: Product & { category: Category; images?: ProductImage[] },
   ): ProductResponseDto {
@@ -249,5 +283,16 @@ export class ProductsService {
         position: img.position,
       })),
     };
+  }
+  public async clearProductCache(id: string) {
+    await this.cacheManager.del(`product:${id}`);
+    await this.bumpCacheVersion();
+  }
+
+  private async getCacheVersion(): Promise<number> {
+    return (await this.cacheManager.get<number>('product_version')) || 1;
+  }
+  public async bumpCacheVersion(): Promise<number> {
+    return (await this.cacheManager.set('product_version', Date.now()));
   }
 }
