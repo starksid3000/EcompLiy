@@ -95,6 +95,20 @@ export class ProductsController {
     return await this.productsService.findAll(queryDto);
   }
 
+  // Get search suggestions
+  @Get('suggestions')
+  @ApiOperation({
+    summary: 'Get search-as-you-type product suggestions',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'List of product suggestions',
+  })
+  async getSuggestions(@Query('q') q: string) {
+    if (!q || q.trim().length === 0) return [];
+    return await this.productsService.getSuggestions(q.trim());
+  }
+
   //Get product by id
   @Get(':id')
   @ApiOperation({
