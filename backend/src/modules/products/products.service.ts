@@ -142,6 +142,41 @@ export class ProductsService {
     return result;
   }
 
+  // Get search suggestions
+  async getSuggestions(query: string) {
+    const timeLabel = `fetch_suggestions_${Date.now()}`;
+    console.time(timeLabel);
+
+    const cacheKey = `suggestions:${query.toLowerCase()}`;
+    const cached = await this.cacheManager.get(cacheKey);
+    if (cached) {
+      console.log(`\n[Redis] CACHE HIT for ${cacheKey}`);
+      console.timeEnd(timeLabel);
+      return cached;
+    }
+
+    console.log(`\n[Redis] CACHE MISS for ${cacheKey} -> Querying DB`);
+    const formattedSearch = query.trim();
+
+    const rawSuggestions = await this.prisma.$queryRaw<any[]>`
+      SELECT p.id, p.name, p."imageUrl"
+      FROM products p
+      WHERE 
+        p."isActive" = true AND
+        (to_tsvector('english', p.name) @@ plainto_tsquery('english', ${formattedSearch})
+        OR similarity(p.name, ${formattedSearch}) > 0.1)
+      ORDER BY 
+        ts_rank(to_tsvector('english', p.name), plainto_tsquery('english', ${formattedSearch})) + 
+        similarity(p.name, ${formattedSearch}) DESC
+      LIMIT 5
+    `;
+
+    await this.cacheManager.set(cacheKey, rawSuggestions, 3600000); // High TTL for suggestions
+    console.timeEnd(timeLabel);
+
+    return rawSuggestions;
+  }
+
   // Get product by id
   async findOne(id: string): Promise<ProductResponseDto> {
     const cacheKey = `product:${id}`;
