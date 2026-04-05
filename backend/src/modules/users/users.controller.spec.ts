@@ -1,3 +1,5 @@
+/// <reference types="jest" />
+
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unused-vars */
@@ -104,7 +106,7 @@ describe("paswordChange", () => {
     service.changePassword.mockResolvedValue({message:"Password updated successfully"})
 
     const result = await controller.changePassword('user-1',updatePasswordDto);
-
+    
     expect(service.changePassword).toHaveBeenCalledWith('user-1', updatePasswordDto);
     expect(result.message).toEqual("Password updated successfully")
   })

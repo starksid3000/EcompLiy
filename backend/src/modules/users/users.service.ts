@@ -21,7 +21,7 @@ export class UsersService {
     ) { }
 
     private async getCacheVersion(): Promise<number> {
-        return (await this.cacheManager.get<number>('users_version')) || 1;
+        return (await this.cacheManager.get<number>('users_version')) || 1;  
     }
 
     private async bumpCacheVersion(): Promise<number> {
