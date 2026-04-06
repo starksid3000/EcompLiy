@@ -45,7 +45,7 @@ public class User implements UserDetails {
     @Builder.Default
     private Role role = Role.USER;
 
-    // Stored hashed refresh token (like NestJS schema)
+    // Stored hashed refresh token
     private String refreshToken;
 
     // Relations
@@ -78,8 +78,7 @@ public class User implements UserDetails {
         updatedAt = LocalDateTime.now();
     }
 
-    // --- UserDetails implementation ---
-
+    // UserDetails implementation
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));

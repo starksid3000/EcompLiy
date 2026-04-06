@@ -1,0 +1,50 @@
+export const mockPrismaService = {
+  user:{
+    findUnique: jest.fn(),
+    findMany: jest.fn(),
+    findOne: jest.fn(),
+    create: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
+  },
+  product:{
+        findUnique: jest.fn(),
+    findMany: jest.fn(),
+    findOne: jest.fn(),
+    create: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
+  },
+  category:{
+        findUnique: jest.fn(),
+    findMany: jest.fn(),
+    findOne: jest.fn(),
+    create: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
+  },
+  cartItem:{
+        findUnique: jest.fn(),
+    findMany: jest.fn(),
+    findOne: jest.fn(),
+    create: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
+  },
+  cart:{
+        findUnique: jest.fn(),
+    findMany: jest.fn(),
+    findOne: jest.fn(),
+    create: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
+  },
+  order: {
+        findUnique: jest.fn(),
+    findMany: jest.fn(),
+    findOne: jest.fn(),
+    create: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
+  }
+}

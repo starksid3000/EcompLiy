@@ -27,14 +27,14 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            // Disable CSRF (stateless JWT API)
-            .csrf(AbstractHttpConfigurer::disable)
+                // Disable CSRF (stateless JWT API)
+                .csrf(AbstractHttpConfigurer::disable)
 
-            // Stateless session — no HttpSession
-            .sessionManagement(session ->
-                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                // Stateless session — no HttpSession
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-            // Route-level authorization rules
+                // Route-level authorization rules
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/auth/register",
@@ -48,17 +48,20 @@ public class SecurityConfig {
                                 "/swagger-resources/**",
                                 "/webjars/**"
                         ).permitAll()
+                        // Public GET routes — matches NestJS (no @UseGuards on GET endpoints)
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/products/**").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/category/**").permitAll()
                         .anyRequest().authenticated()
                 )
 
-            // Wire in the custom AuthenticationProvider (uses our UserDetailsService + BCrypt)
-            .authenticationProvider(authenticationProvider)
+                // Wire in the custom AuthenticationProvider (uses our UserDetailsService + BCrypt)
+                .authenticationProvider(authenticationProvider)
 
-            // Refresh token filter runs BEFORE the standard JWT filter
-            .addFilterBefore(refreshTokenFilter, UsernamePasswordAuthenticationFilter.class)
+                // Refresh token filter runs BEFORE the standard JWT filter
+                .addFilterBefore(refreshTokenFilter, UsernamePasswordAuthenticationFilter.class)
 
-            // Access token filter
-            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+                // Access token filter
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
