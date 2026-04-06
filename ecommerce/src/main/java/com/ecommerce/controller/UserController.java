@@ -1,6 +1,7 @@
 package com.ecommerce.controller;
 
 import com.ecommerce.dto.request.ChagePasswordRequest;
+import com.ecommerce.dto.request.UpdateRoleRequest;
 import com.ecommerce.dto.request.UpdateUserRequest;
 import com.ecommerce.dto.response.UserResponse;
 import com.ecommerce.entity.User;
@@ -67,5 +68,12 @@ public class UserController {
     public ResponseEntity<Void> deleteUser(@PathVariable UUID id){
         userService.remove(id);
         return ResponseEntity.ok().build();
+    }
+
+    //Update user role - ADMIN
+    @PatchMapping("/{id}/role")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<UserResponse> updateRole(@PathVariable UUID id, @Valid @RequestBody UpdateRoleRequest request){
+        return ResponseEntity.ok(userService.updateRole(id, request.getRole()));
     }
 }

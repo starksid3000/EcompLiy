@@ -89,6 +89,16 @@ public class UserService {
         userRepository.delete(user);
         log.debug("Removed user: {}", user.getEmail());
     }
+    @Transactional
+    public UserResponse updateRole(UUID id, com.ecommerce.entity.enums.Role newRole){
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new GlobalExceptionHandler.ResourceNotFounException("User not found"));
+
+        user.setRole(newRole);
+        userRepository.save(user);
+        log.debug("Updated role for user {} to {}", user.getEmail(), newRole);
+        return mapToResponse(user);
+    }
     //Helper
     public UserResponse mapToResponse(User user){
         return UserResponse.builder()
