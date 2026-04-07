@@ -1,250 +1,73 @@
-import { Menubar } from "primereact/menubar";
-import { Outlet, useLocation, useNavigate } from "react-router-dom";
-import useAuthStore from "../store/authStore";
-import { useEffect, useMemo, useRef } from "react";
-import SearchBar from "../components/SearchBar";
-import { Button } from "primereact/button";
-import { Badge } from "primereact/badge";
-import { Skeleton } from "primereact/skeleton";
-import UserMenu from "../components/UserMenu";
-import api from "../utils/api";
+import { Outlet, useLocation } from "react-router-dom";
+import { useEffect, useRef } from "react";
 import { Toast } from "primereact/toast";
+import useAuthStore from "../store/authStore";
 import useCartStore from "../store/cartStore";
-// Main Layout
+
+import Navbar from "../components/Navbar";
+import MobileTopBar from "../components/MobileTopBar";
+import MobileBottomNav from "../components/MobileBottomNav";
+
 const MainLayout = () => {
-  const navigate = useNavigate();
   const location = useLocation();
-  const { isAuthenticated, user, initializeAuth, logout, isLoading } =
-    useAuthStore();
-  const { totalItems, fetchCart, resetCart } = useCartStore();
+  const { isAuthenticated, initializeAuth, isLoading } = useAuthStore();
+  const { fetchCart } = useCartStore();
   const toast = useRef(null);
 
   useEffect(() => {
     initializeAuth();
-  }, []); // intentionally empty — initializeAuth should only run once on mount
+  }, []); // Run once on mount
+
   useEffect(() => {
     if (isAuthenticated && !isLoading) {
       fetchCart();
     }
   }, [isAuthenticated, isLoading]);
 
-  //handling logout
-  const handleLogout = async () => {
-    try {
-      await api.post("/auth/logout");
-      toast.current?.show({
-        severity: "success",
-        summary: "Logged out",
-        detail: "See you next time!",
-        life: 2000,
-      });
-    } catch {
-      // still log out locally even if the API call fails
-      toast.current?.show({
-        severity: "warn",
-        summary: "Session ended",
-        detail: "You have been logged out.",
-        life: 2000,
-      });
-    } finally {
-      logout();
-      resetCart();
-      navigate("/login");
-    }
-  };
-
-  // Memoized nav items so they don't re-create on every render
-  const isAdmin = user?.role === "ADMIN";
-  const items = useMemo(() => {
-    const navItems = [
-      {
-        template: () => (
-          <div
-            className="flex align-items-center gap-2 cursor-pointer mr-3"
-            onClick={() => navigate("/")}
-            role="link"
-            aria-label="Go to homepage"
-          >
-            <i className="pi pi-shopping-cart text-primary text-xl" />
-            <span className="font-bold text-lg">EcompLiy</span>
-          </div>
-        ),
-      },
-      {
-        label: "Home",
-        icon: "pi pi-home",
-        className: location.pathname === "/" ? "font-bold text-primary" : "",
-        command: () => navigate("/"),
-      },
-      {
-        label: "Products",
-        icon: "pi pi-shopping-bag",
-        className: location.pathname.startsWith("/products")
-          ? "font-bold text-primary"
-          : "",
-        command: () => navigate("/products"),
-      },
-    ];
-
-    //show cart only if the user is authenticated
-    if (isAuthenticated) {
-      navItems.push({
-        template: () => (
-          <div
-            className={`p-menuitem-link flex align-items-center gap-2 cursor-pointer ${location.pathname.startsWith("/cart")}
-          ? "font-bold text-primary" : ""
-          `}
-            onClick={() => navigate("/cart")}
-            role="link"
-            aria-label={`Cart${totalItems > 0 ? `,${totalItems} items` : ""}`}
-          >
-            <i className="pi pi-shopping-cart" />
-            <span className="p-overlay-badge">
-              <span>Cart</span>
-              {totalItems > 0 && <Badge value={totalItems} severity="danger" />}
-            </span>
-          </div>
-        ),
-      });
-    }
-    if (isAdmin) {
-      navItems.push({
-        label: "Admin",
-        icon: "pi pi-cog",
-        className: location.pathname.startsWith("/admin")
-          ? "font-bold text-primary"
-          : "",
-        items: [
-          {
-            label: "Dashboard",
-            icon: " pi pi-th-large",
-            command: () => navigate("/admin/dashboard"),
-          },
-          {
-            label: "Manage Products",
-            icon: " pi pi-box",
-            command: () => navigate("/admin/products"),
-          },
-          {
-            label: "Manage Orders",
-            icon: " pi pi-list",
-            command: () => navigate("/admin/orders"),
-          },
-          {
-            label: "Manage Categories",
-            icon: " pi pi-tags",
-            command: () => navigate("/admin/categories"),
-          },
-          {
-            label: "Manage Users",
-            icon: " pi pi-users",
-            command: () => navigate("/admin/users"),
-          },
-        ],
-      });
-    }
-    return navItems;
-  }, [location.pathname, navigate, totalItems, isAuthenticated, isAdmin]);
-
-  //check if the page is /login or /register
-  const isAuthPage =
-    location.pathname === "/login" || location.pathname === "/register";
-  // Memoized end content
-  const endContent = useMemo(
-    () => (
-      <div className="flex align-items-center gap-2 md:gap-3 w-full md:w-auto">
-        <SearchBar />
-
-        {isLoading ? (
-          // Show skeleton while auth state is resolving
-          <Skeleton shape="circle" size="2rem" />
-        ) : isAuthenticated ? (
-          <div className="flex align-items-center gap-2">
-            {isAdmin && (
-              <span className="hidden md:inline px-2 py-1 border-round-full text-xs font-bold bg-purple-100 text-purple-700">
-                ADMIN
-              </span>
-            )}
-            <UserMenu user={user} onLogout={handleLogout} />
-          </div>
-        ) : (
-          <Button
-            label="Login"
-            icon="pi pi-sign-in"
-            className="border-round-full font-semibold p-button-sm"
-            onClick={() => navigate("/login")}
-          />
-        )}
-      </div>
-    ),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [isAuthenticated, isLoading, user, navigate],
-  );
+  const isAuthPage = location.pathname === "/login" || location.pathname === "/register";
 
   return (
     <div className="min-h-screen flex flex-column surface-ground">
       <Toast ref={toast} />
-      <header
-        className="sticky top-0 z-5"
-        style={{
-          backdropFilter: "blur(12px)",
-          background: "rgba(255,255,255,0.75)",
-          borderBottom: "1px solid var(--surface-border)",
-        }}
-      >
-        <Menubar
-          model={items}
-          end={endContent}
-          className="border-none px-2 md:px-4 py-2 w-full"
-          aria-label="Main navigation"
-        />
-      </header>
+      
+      {/* Desktop Navigation */}
+      <Navbar />
 
-      <main className={`flex-grow-1`}>
+      {/* Mobile Top Navigation (Search & Branded Header) */}
+      <MobileTopBar />
+
+      {/* Content Plane */}
+      <main className="flex-grow-1" style={{ paddingBottom: '90px' }}> {/* Bottom padding to prevent content from hiding behind Bottom Nav */}
         {isAuthPage ? (
           <Outlet />
         ) : (
-          <div className="p-1 flex-grow-1">
+          <div className="p-3 flex-grow-1 max-w-screen-xl mx-auto w-full">
             <Outlet />
           </div>
         )}
       </main>
 
-      <footer className="surface-800 text-black p-4">
-        <div className="flex flex-column md:flex-row justify-content-between align-items-center gap-3 max-w-screen-lg mx-auto">
+      {/* Mobile Bottom Thumbnail Navigation (Icons inside) */}
+      <MobileBottomNav />
+
+      {/* Standard Footer - hidden on heavily constrained mobile screens to avoid fighting Thumb Nav */}
+      <footer className="surface-800 text-black p-4 hidden md:block">
+        <div className="flex flex-column md:flex-row justify-content-between align-items-center gap-3 max-w-screen-lg mx-auto w-full">
           <div>
             <span className="font-bold text-lg">EcompLiy</span>
-            <span className="block text-sm mt-1 text-300">
+            <span className="block text-sm mt-1 text-400">
               © {new Date().getFullYear()} All rights reserved.
             </span>
           </div>
 
           <div className="flex gap-4 text-xl">
-            <a
-              href="https://twitter.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Twitter"
-              className="text-300 hover:text-white transition-colors transition-duration-200 no-underline"
-            >
+            <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" aria-label="Twitter" className="text-300 hover:text-white transition-colors transition-duration-200 no-underline" >
               <i className="pi pi-twitter" />
             </a>
-            <a
-              href="https://facebook.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Facebook"
-              className="text-300 hover:text-white transition-colors transition-duration-200 no-underline"
-            >
+            <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="text-300 hover:text-white transition-colors transition-duration-200 no-underline" >
               <i className="pi pi-facebook" />
             </a>
-            <a
-              href="https://instagram.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Instagram"
-              className="text-300 hover:text-white transition-colors transition-duration-200 no-underline"
-            >
+            <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="text-300 hover:text-white transition-colors transition-duration-200 no-underline" >
               <i className="pi pi-instagram" />
             </a>
           </div>
