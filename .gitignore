@@ -139,7 +139,11 @@ target/
 # ===============================
 # Java / Maven (Spring Boot)
 # ===============================
+# Ignore sensitive config
+ecommerce/src/main/resources/application.properties
 
+# Compiled class files
+*.class
 # Compiled class files
 *.class
 
