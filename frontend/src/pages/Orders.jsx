@@ -90,6 +90,20 @@ const Orders = () => {
       day: "numeric",
     });
 
+  const addressBody = (order) => {
+    const addr = order.shippingAddress;
+    if (!addr) return <span className="text-500">N/A</span>;
+    if (typeof addr === "string") return addr;
+    
+    return (
+      <div className="text-sm" style={{ minWidth: "200px" }}>
+        <div className="font-medium text-900">{addr.fullName}</div>
+        <div className="text-600">{addr.street}{addr.house ? `, ${addr.house}` : ""}</div>
+        <div className="text-600">{addr.city}, {addr.state} {addr.zipCode}</div>
+      </div>
+    );
+  };
+
   const actionBody = (order) => (
     <div className="flex gap-2">
       <Button
@@ -170,7 +184,7 @@ const Orders = () => {
             sortable
             sortField="createdAt"
           />
-          <Column field="shippingAddress" header="Shipping Address" />
+          <Column body={addressBody} header="Shipping Address" />
           <Column body={actionBody} header="" style={{ width: "120px" }} />
         </DataTable>
       )}

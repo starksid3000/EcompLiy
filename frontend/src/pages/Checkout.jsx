@@ -2,6 +2,8 @@ import React, { useState, useRef, useEffect } from "react";
 import { InputText } from "primereact/inputtext";
 import { InputTextarea } from "primereact/inputtextarea";
 import { Button } from "primereact/button";
+import { Dropdown } from "primereact/dropdown";
+import { fetchLocationFromZip, detectUserLocation } from "../utils/location";
 import { Toast } from "primereact/toast";
 import { ProgressSpinner } from "primereact/progressspinner";
 import { useNavigate } from "react-router-dom";
@@ -95,7 +97,18 @@ const PaymentForm = ({ orderId, amount, onSuccess }) => {
 // Checkout Page 
 const Checkout = () => {
   const { cartItems, totalAmount, fetchCart, clearCart } = useCartStore();
-  const [shippingAddress, setShippingAddress] = useState("");
+  const [shippingAddress, setShippingAddress] = useState({
+    fullName: "",
+    mobile: "",
+    house: "",
+    street: "",
+    landmark: "",
+    zipCode: "",
+    city: "",
+    state: "",
+    country: "US"
+  });
+  const [detecting, setDetecting] = useState(false);
   const [step, setStep] = useState("address"); // address | payment | success
   const [clientSecret, setClientSecret] = useState(null);
   const [orderId, setOrderId] = useState(null);
@@ -107,12 +120,43 @@ const Checkout = () => {
     fetchCart();
   }, []);
 
+  const handleZipLookup = async (e) => {
+    const zip = e.target.value;
+    updateAddress("zipCode", zip);
+    if (zip.length >= 5 && shippingAddress.country) {
+      const loc = await fetchLocationFromZip(shippingAddress.country, zip);
+      if (loc) {
+        setShippingAddress(prev => ({ ...prev, city: loc.city, state: loc.state }));
+        toast.current?.show({ severity: "info", summary: "Location Found", detail: `${loc.city}, ${loc.state}` });
+      }
+    }
+  };
+
+  const handleDetectLocation = async () => {
+    setDetecting(true);
+    toast.current?.show({ severity: "info", summary: "Detecting Location...", detail: "Please wait" });
+    try {
+      const loc = await detectUserLocation();
+      setShippingAddress(prev => ({ ...prev, ...loc }));
+      toast.current?.show({ severity: "success", summary: "Location Detected" });
+    } catch (err) {
+      toast.current?.show({ severity: "error", summary: "Detection Failed", detail: err.message });
+    } finally {
+      setDetecting(false);
+    }
+  };
+
+  const updateAddress = (field, value) => {
+    setShippingAddress(prev => ({ ...prev, [field]: value }));
+  };
+
   const handleCreateOrder = async () => {
-    if (!shippingAddress.trim()) {
+    const { fullName, mobile, street, zipCode, city, state, country } = shippingAddress;
+    if (!fullName || !mobile || !street || !zipCode || !city || !state || !country) {
       toast.current?.show({
         severity: "warn",
         summary: "Required",
-        detail: "Please enter a shipping address",
+        detail: "Please fill in all required address fields",
         life: 3000,
       });
       return;
@@ -122,7 +166,7 @@ const Checkout = () => {
     try {
       // Create order from cart
       const orderRes = await api.post("/orders", {
-        shippingAddress: shippingAddress.trim(),
+        shippingAddress,
         items: cartItems.map((item) => ({
           productId: item.product.id,
           quantity: Number(item.quantity),
@@ -203,18 +247,67 @@ const Checkout = () => {
           <div className="surface-card shadow-2 border-round-xl p-5">
             {step === "address" && (
               <>
-                <h2 className="text-900 font-bold text-xl mb-4">
-                  <i className="pi pi-map-marker mr-2 text-primary" />
-                  Shipping Address
-                </h2>
-                <InputTextarea
-                  value={shippingAddress}
-                  onChange={(e) => setShippingAddress(e.target.value)}
-                  rows={3}
-                  className="w-full mb-4"
-                  placeholder="Enter your full shipping address..."
-                  autoResize
-                />
+                <div className="flex justify-content-between align-items-center mb-4">
+                  <h2 className="text-900 font-bold text-xl m-0">
+                    <i className="pi pi-map-marker mr-2 text-primary" />
+                    Shipping Address
+                  </h2>
+                  <Button 
+                    type="button"
+                    label="Auto Detect" 
+                    icon={detecting ? "pi pi-spin pi-spinner" : "pi pi-compass"} 
+                    className="p-button-outlined p-button-sm p-button-rounded" 
+                    onClick={handleDetectLocation} 
+                    disabled={detecting}
+                  />
+                </div>
+                
+                <div className="grid">
+                  <div className="col-12 md:col-6 field mb-3">
+                    <label className="font-semibold mb-2 block">Full Name *</label>
+                    <InputText className="w-full" value={shippingAddress.fullName} onChange={(e) => updateAddress("fullName", e.target.value)} />
+                  </div>
+                  <div className="col-12 md:col-6 field mb-3">
+                    <label className="font-semibold mb-2 block">Mobile *</label>
+                    <InputText className="w-full" value={shippingAddress.mobile} onChange={(e) => updateAddress("mobile", e.target.value)} />
+                  </div>
+                  
+                  <div className="col-12 md:col-6 field mb-3">
+                    <label className="font-semibold mb-2 block">House / Flat No.</label>
+                    <InputText className="w-full" value={shippingAddress.house} onChange={(e) => updateAddress("house", e.target.value)} />
+                  </div>
+                  <div className="col-12 md:col-6 field mb-3">
+                    <label className="font-semibold mb-2 block">Street Address *</label>
+                    <InputText className="w-full" value={shippingAddress.street} onChange={(e) => updateAddress("street", e.target.value)} />
+                  </div>
+                  
+                  <div className="col-12 md:col-6 field mb-3">
+                    <label className="font-semibold mb-2 block">Landmark (Optional)</label>
+                    <InputText className="w-full" value={shippingAddress.landmark} onChange={(e) => updateAddress("landmark", e.target.value)} />
+                  </div>
+                  <div className="col-12 md:col-6 field mb-3">
+                    <label className="font-semibold mb-2 block">Country *</label>
+                    <Dropdown 
+                      className="w-full" 
+                      value={shippingAddress.country} 
+                      options={[{label: 'United States', value: 'US'}, {label: 'India', value: 'IN'}]} 
+                      onChange={(e) => updateAddress("country", e.value)} 
+                    />
+                  </div>
+
+                  <div className="col-12 md:col-4 field mb-3">
+                    <label className="font-semibold mb-2 block">Zip Code *</label>
+                    <InputText className="w-full" value={shippingAddress.zipCode} onChange={handleZipLookup} placeholder="e.g. 90210" />
+                  </div>
+                  <div className="col-12 md:col-4 field mb-3">
+                    <label className="font-semibold mb-2 block">City *</label>
+                    <InputText className="w-full" value={shippingAddress.city} onChange={(e) => updateAddress("city", e.target.value)} />
+                  </div>
+                  <div className="col-12 md:col-4 field mb-3">
+                    <label className="font-semibold mb-2 block">State *</label>
+                    <InputText className="w-full" value={shippingAddress.state} onChange={(e) => updateAddress("state", e.target.value)} />
+                  </div>
+                </div>
                 <Button
                   label={loading ? "Creating Order..." : "Continue to Payment"}
                   icon={loading ? "pi pi-spin pi-spinner" : "pi pi-arrow-right"}
