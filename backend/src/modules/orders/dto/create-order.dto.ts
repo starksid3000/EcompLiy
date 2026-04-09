@@ -25,15 +25,63 @@ class OrderItmDto{
     @Type(() => Number)
     price: number;
 }
-export class CreateOrderDto{
+export class AddressDto {
+    @ApiProperty()
+    @IsNotEmpty()
+    @IsString()
+    fullName: string;
+
+    @ApiProperty()
+    @IsNotEmpty()
+    @IsString()
+    mobile: string;
+
+    @ApiProperty()
+    @IsNotEmpty()
+    @IsString()
+    house: string;
+
+    @ApiProperty()
+    @IsNotEmpty()
+    @IsString()
+    street: string;
+
+    @ApiProperty({ required: false })
+    @IsOptional()
+    @IsString()
+    landmark?: string;
+
+    @ApiProperty()
+    @IsNotEmpty()
+    @IsString()
+    zipCode: string;
+
+    @ApiProperty()
+    @IsNotEmpty()
+    @IsString()
+    city: string;
+
+    @ApiProperty()
+    @IsNotEmpty()
+    @IsString()
+    state: string;
+
+    @ApiProperty()
+    @IsNotEmpty()
+    @IsString()
+    country: string;
+}
+
+export class CreateOrderDto {
     @ApiProperty({type:[OrderItmDto]})
     @IsArray()
     @ValidateNested({each:true})
     @Type(() => OrderItmDto)
     items: OrderItmDto[];
 
-    @ApiProperty({required:false})
-    @IsOptional()
-    @IsString()
-    shippingAddress: string;
+    @ApiProperty({ type: AddressDto })
+    @IsNotEmpty()
+    @ValidateNested()
+    @Type(() => AddressDto)
+    shippingAddress: AddressDto;
 }

@@ -61,8 +61,10 @@ export class OrderResponseDto {
   @ApiProperty()
   total: number;
 
-  @ApiProperty()
-  shippingAddress: string;
+  @ApiProperty({
+    type: Object,
+  })
+  shippingAddress: any;
 
   @ApiProperty({
     type: [OrderItemResponseDto],

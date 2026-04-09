@@ -75,7 +75,7 @@ export class OrdersService {
                     userId,
                     status: OrderStatus.PENDING,
                     totalAmount: total,
-                    shippingAddress,
+                    shippingAddress: shippingAddress as any,
                     cartId: latestCart?.id,
                     orderItems: {
                         create: items.map((item) => ({
@@ -104,7 +104,7 @@ export class OrdersService {
         });
 
         await this.bumpCacheVersion();
-        return this.wrap(order);
+        return this.wrap(order as any);
     }
 
     async findAllForAdmin(query: QueryOrderDto): Promise<{
@@ -318,10 +318,7 @@ export class OrdersService {
 
     //Helpers
     private wrap(
-        order: Order & {
-            orderItems: (OrderItem & { product: Product })[];
-            user: User;
-        },
+        order: any,
     ): OrderApiResponseDto<OrderResponseDto> {
         return {
             success: true,
@@ -331,17 +328,14 @@ export class OrdersService {
     }
 
     private map(
-        order: Order & {
-            orderItems: (OrderItem & { product: Product })[];
-            user: User;
-        },
+        order: any,
     ): OrderResponseDto {
         return {
             id: order.id,
             userId: order.userId,
             status: order.status,
             total: Number(order.totalAmount),
-            shippingAddress: order.shippingAddress ?? '',
+            shippingAddress: order.shippingAddress || {},
             items: order.orderItems.map((item) => ({
                 id: item.id,
                 productId: item.productId,

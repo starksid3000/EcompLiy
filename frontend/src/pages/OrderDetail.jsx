@@ -350,9 +350,17 @@ const OrderDetail = () => {
               <i className="pi pi-truck mr-2 text-primary" />
               Shipping Address
             </h3>
-            <p className="text-700 line-height-3 m-0">
-              {order.shippingAddress || "N/A"}
-            </p>
+            <div className="text-700 line-height-3 m-0">
+              {!order.shippingAddress ? "N/A" : typeof order.shippingAddress === 'string' ? order.shippingAddress : (
+                <>
+                  <div className="font-semibold text-900">{order.shippingAddress.fullName}</div>
+                  <div>{order.shippingAddress.street}{order.shippingAddress.house ? `, ${order.shippingAddress.house}` : ""}</div>
+                  <div>{order.shippingAddress.city}, {order.shippingAddress.state} {order.shippingAddress.zipCode}</div>
+                  <div>{order.shippingAddress.country}</div>
+                  {order.shippingAddress.mobile && <div className="mt-2"><i className="pi pi-phone mr-2"></i>{order.shippingAddress.mobile}</div>}
+                </>
+              )}
+            </div>
           </div>
 
           {/* Payment Info */}

@@ -171,7 +171,7 @@ model Order {
   cartId String?
   cart   Cart?   @relation(fields: [cartId], references: [id])
 
-  shippingAddress String?
+  shippingAddress Json?
   orderItems      OrderItem[]
   payment         Payment?
 
