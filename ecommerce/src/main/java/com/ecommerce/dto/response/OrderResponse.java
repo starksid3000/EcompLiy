@@ -30,9 +30,9 @@ public class OrderResponse {
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class PaymentSummary{
+    public static class PaymentSummary {
         private UUID id;
-        private String stauts;
+        private String status;
         private String method;
     }
 }

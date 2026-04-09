@@ -7,11 +7,12 @@ import lombok.Data;
 
 @Data
 public class CreatePaymentIntentRequest {
-    @NotBlank(message = "Order id is required")
+
+    @NotBlank(message = "Order ID is required")
     private String orderId;
 
     @NotNull(message = "Amount is required")
-    @DecimalMin(value = "0.0", inclusive = false, message = "Amount must ve greater than zero")
+    @DecimalMin(value = "0.0", inclusive = false, message = "Amount must be greater than zero")
     private Double amount;
 
     private String currency = "usd";
