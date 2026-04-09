@@ -6,6 +6,7 @@ import lombok.Data;
 
 @Data
 public class UpdateOrderRequest {
+
     @NotNull(message = "Status cannot be null")
     private OrderStatus status;
 }

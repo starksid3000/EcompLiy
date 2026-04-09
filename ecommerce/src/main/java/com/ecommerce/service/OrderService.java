@@ -57,7 +57,7 @@ public class OrderService {
             if (!product.isActive()) {
                 throw new BadRequestException("Product " + product.getName() + " is no longer active");
             }
-
+            
             totalAmount += product.getPrice().doubleValue() * item.getQuantity();
         }
 
@@ -76,7 +76,7 @@ public class OrderService {
 
         for (CartItem cartItem : cart.getCartItems()) {
             Product product = cartItem.getProduct();
-
+            
             OrderItem orderItem = OrderItem.builder()
                     .order(order)
                     .product(product)
@@ -104,11 +104,11 @@ public class OrderService {
     public PaginatedResponse<OrderResponse> getUserOrders(UUID userId, QueryOrderRequest query) {
         int page = query.getPage() != null ? query.getPage() : 1;
         int limit = query.getLimit() != null ? query.getLimit() : 10;
-
+        
         Pageable pageable = PageRequest.of(page - 1, limit, Sort.by(Sort.Direction.DESC, "createdAt"));
-
+        
         Page<Order> orderPage = orderRepository.findByUserId(userId, pageable);
-
+        
         List<OrderResponse> data = orderPage.getContent().stream()
                 .map(this::formatOrder)
                 .toList();
@@ -139,7 +139,7 @@ public class OrderService {
     public PaginatedResponse<OrderResponse> getAllOrders(QueryOrderRequest query) {
         int page = query.getPage() != null ? query.getPage() : 1;
         int limit = query.getLimit() != null ? query.getLimit() : 10;
-
+        
         Pageable pageable = PageRequest.of(page - 1, limit, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<Order> orderPage;
 
@@ -148,7 +148,7 @@ public class OrderService {
         } else {
             orderPage = orderRepository.findAll(pageable);
         }
-
+        
         List<OrderResponse> data = orderPage.getContent().stream()
                 .map(this::formatOrder)
                 .toList();
@@ -171,9 +171,9 @@ public class OrderService {
 
         order.setStatus(request.getStatus());
         orderRepository.save(order);
-
+        
         log.debug("Updated order {} status to {}", id, request.getStatus());
-
+        
         return formatOrder(orderRepository.findByIdWithItems(order.getId()).orElse(order));
     }
 
@@ -184,10 +184,10 @@ public class OrderService {
             OrderItemResponse.ProductSummary ps = null;
             if (item.getProduct() != null) {
                 ps = OrderItemResponse.ProductSummary.builder()
-                        .name(item.getProduct().getName())
-                        .sku(item.getProduct().getSku())
-                        .imageUrl(item.getProduct().getImageUrl())
-                        .build();
+                    .name(item.getProduct().getName())
+                    .sku(item.getProduct().getSku())
+                    .imageUrl(item.getProduct().getImageUrl())
+                    .build();
             }
 
             return OrderItemResponse.builder()
@@ -204,7 +204,7 @@ public class OrderService {
         if (order.getPayment() != null) {
             pSummary = OrderResponse.PaymentSummary.builder()
                     .id(order.getPayment().getId())
-                    .stauts(order.getPayment().getStatus().name())
+                    .status(order.getPayment().getStatus().name())
                     .method(order.getPayment().getPaymentMethod())
                     .build();
         }

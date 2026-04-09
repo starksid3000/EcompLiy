@@ -8,9 +8,9 @@ import lombok.NoArgsConstructor;
 import java.util.UUID;
 
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class OrderItemResponse {
     private UUID id;
     private UUID productId;
@@ -23,7 +23,7 @@ public class OrderItemResponse {
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
-    public class ProductSummary {
+    public static class ProductSummary {
         private String name;
         private String sku;
         private String imageUrl;
